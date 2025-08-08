@@ -24,25 +24,18 @@
 use std::net::SocketAddr;
 
 use axum::Router;
-use sqlx::{SqlitePool, sqlite::SqlitePoolOptions};
+use db::connect_to_database;
 use tokio::net::TcpListener;
 
 mod api;
 mod app_state;
-mod auth;
+mod db;
+mod middleware;
 mod models;
 mod util;
 mod web;
 
 use app_state::AppState;
-
-pub async fn connect_to_database() -> SqlitePool {
-    let url = dotenvy::var("DATABASE_URL").expect("DATABASE_URL not set");
-    SqlitePoolOptions::new()
-        .connect(&url)
-        .await
-        .expect("Failed to connect to database")
-}
 
 #[tokio::main]
 async fn main() {

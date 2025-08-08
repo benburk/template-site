@@ -1,3 +1,4 @@
+//! Web routes.
 use axum::{Router, routing::get};
 
 use crate::app_state::AppState;

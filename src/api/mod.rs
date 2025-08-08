@@ -1,3 +1,4 @@
+//! API routes.
 use axum::Router;
 
 use crate::app_state::AppState;
