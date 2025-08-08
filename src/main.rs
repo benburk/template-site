@@ -23,16 +23,16 @@
 )]
 use std::net::SocketAddr;
 
-use axum::{Router, routing::get};
+use axum::Router;
 use sqlx::{SqlitePool, sqlite::SqlitePoolOptions};
 use tokio::net::TcpListener;
 
+mod api;
 mod app_state;
 mod models;
 mod web;
 
 use app_state::AppState;
-use web::home::home;
 
 pub async fn connect_to_database() -> SqlitePool {
     let url = dotenvy::var("DATABASE_URL").expect("DATABASE_URL not set");
@@ -48,7 +48,10 @@ async fn main() {
 
     let state = AppState { db };
 
-    let app = Router::new().route("/", get(home)).with_state(state);
+    let app = Router::new()
+        .merge(web::router())
+        .nest("/api", api::router())
+        .with_state(state);
 
     let addr = SocketAddr::from(([0, 0, 0, 0], 3000));
     let listener = TcpListener::bind(addr).await.unwrap();
