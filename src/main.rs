@@ -29,7 +29,9 @@ use tokio::net::TcpListener;
 
 mod api;
 mod app_state;
+mod auth;
 mod models;
+mod util;
 mod web;
 
 use app_state::AppState;
