@@ -27,9 +27,11 @@ use axum::{Router, routing::get};
 use sqlx::{SqlitePool, sqlite::SqlitePoolOptions};
 use tokio::net::TcpListener;
 
+mod app_state;
 mod models;
 mod web;
 
+use app_state::AppState;
 use web::home::home;
 
 pub async fn connect_to_database() -> SqlitePool {
@@ -38,11 +40,6 @@ pub async fn connect_to_database() -> SqlitePool {
         .connect(&url)
         .await
         .expect("Failed to connect to database")
-}
-
-#[derive(Clone)]
-pub struct AppState {
-    pub db: SqlitePool,
 }
 
 #[tokio::main]
