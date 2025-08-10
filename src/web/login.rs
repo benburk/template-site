@@ -58,12 +58,16 @@ pub async fn post(
     Form(form): Form<FormPayload>,
 ) -> impl IntoResponse {
     let created_at = current_time_micros();
-    debug!("post request");
-
     match User::check_login(&mut conn, &form.username, &form.password).await {
         Some(user) => {
-            let cookie =
-                create_session(&mut conn, user.id, created_at, addr.to_string(), user_agent).await;
+            let cookie = create_session(
+                &mut conn,
+                user.id,
+                created_at,
+                addr.to_string(),
+                user_agent,
+            )
+            .await;
             ([("HX-Redirect", "/")], jar.add(cookie)).into_response()
         }
         None => Html(

@@ -42,7 +42,8 @@ use tracing::{info, subscriber};
 use tracing_appender::rolling::{RollingFileAppender, Rotation};
 
 fn configure_logging() {
-    let file_appender = RollingFileAppender::new(Rotation::DAILY, "logs", "basic-site.log");
+    let file_appender =
+        RollingFileAppender::new(Rotation::DAILY, "logs", "basic-site.log");
 
     let subscriber = tracing_subscriber::fmt()
         .with_writer(file_appender)

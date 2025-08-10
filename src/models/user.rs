@@ -12,7 +12,10 @@ pub struct User {
 
 impl User {
     /// Inserts the user into the database and returns the new user's ID.
-    pub async fn insert(db: &mut SqliteConnection, user: &Self) -> Result<(), sqlx::Error> {
+    pub async fn insert(
+        db: &mut SqliteConnection,
+        user: &Self,
+    ) -> Result<(), sqlx::Error> {
         sqlx::query!(
             "INSERT INTO user (id, username, password_hash, created_at) VALUES (?, ?, ?, ?)",
             user.id,
@@ -43,7 +46,10 @@ impl User {
         .await
     }
 
-    pub async fn get_by_id(db: &mut SqliteConnection, user_id: Uuid) -> Result<Self, sqlx::Error> {
+    pub async fn get_by_id(
+        db: &mut SqliteConnection,
+        user_id: Uuid,
+    ) -> Result<Self, sqlx::Error> {
         sqlx::query_as!(
             User,
             r#"SELECT
@@ -67,8 +73,8 @@ impl User {
     ) -> Option<Self> {
         match Self::get_by_username(db, username).await {
             Ok(user) => {
-                let parsed_hash =
-                    PasswordHash::new(&user.password_hash).expect("Failed to parsh hash");
+                let parsed_hash = PasswordHash::new(&user.password_hash)
+                    .expect("Failed to parsh hash");
                 Argon2::default()
                     .verify_password(password.as_bytes(), &parsed_hash)
                     .ok()

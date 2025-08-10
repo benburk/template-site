@@ -12,7 +12,10 @@ pub struct Session {
 }
 
 impl Session {
-    pub async fn insert(db: &mut SqliteConnection, session: &Self) -> Result<i64, sqlx::Error> {
+    pub async fn insert(
+        db: &mut SqliteConnection,
+        session: &Self,
+    ) -> Result<i64, sqlx::Error> {
         sqlx::query!(
             "INSERT INTO session (id, user_id, ip_address, user_agent, created_at, expires_at)
         VALUES (?, ?, ?, ?, ?, ?)",
@@ -49,7 +52,10 @@ impl Session {
     }
 
     /// Don't need to check if correct user because guessing is unlikely.
-    pub async fn delete_by_id(db: &mut SqliteConnection, id: Uuid) -> Result<u64, sqlx::Error> {
+    pub async fn delete_by_id(
+        db: &mut SqliteConnection,
+        id: Uuid,
+    ) -> Result<u64, sqlx::Error> {
         sqlx::query!("DELETE FROM session WHERE id = ?", id)
             .execute(db)
             .await

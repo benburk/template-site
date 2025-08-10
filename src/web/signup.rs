@@ -96,7 +96,14 @@ pub async fn post(
         }
     }
 
-    let cookie = create_session(&mut conn, user.id, created_at, addr.to_string(), user_agent).await;
+    let cookie = create_session(
+        &mut conn,
+        user.id,
+        created_at,
+        addr.to_string(),
+        user_agent,
+    )
+    .await;
 
     ([("HX-Redirect", "/")], jar.add(cookie)).into_response()
 }
@@ -125,7 +132,10 @@ fn validate_inputs(form: &FormPayload) -> Result<(), SignupForm> {
 }
 
 fn validate_username(username: &str) -> String {
-    if username.len() < 5 || username.len() > 20 || !username.chars().all(char::is_alphanumeric) {
+    if username.len() < 5
+        || username.len() > 20
+        || !username.chars().all(char::is_alphanumeric)
+    {
         String::from(
             "Username must be between 5 and 20 characters, and only contain letters / numbers.",
         )
