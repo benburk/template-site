@@ -31,13 +31,15 @@ pub async fn create_session<'e, E: SqliteExecutor<'e>>(
     user_agent: UserAgent,
 ) -> Cookie<'static> {
     let id = uuid::Uuid::new_v4();
+    let expire_micros =
+        i64::try_from(time::Duration::WEEK.whole_microseconds()).unwrap();
     let session = Session {
         id,
         user_id,
         ip_address,
         user_agent: user_agent.to_string(),
         created_at: time,
-        expires_at: 0, // TODO
+        expires_at: time.wrapping_add(expire_micros),
     };
     Session::insert(db, &session).await.unwrap();
     build_session_cookie(id)

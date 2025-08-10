@@ -11,6 +11,7 @@ use crate::{
     app_state::AppState,
     error::internal_error,
     models::{session::Session, user::User},
+    util::current_time_micros,
 };
 
 impl OptionalFromRequestParts<AppState> for User {
@@ -41,6 +42,16 @@ impl OptionalFromRequestParts<AppState> for User {
                 return Err(internal_error(err));
             }
         };
+
+        let current_time = current_time_micros();
+        if session.expires_at <= current_time {
+            warn!("Session {session_id} has expired");
+            if let Err(err) = Session::delete_by_id(&state.db, session_id).await
+            {
+                warn!("Failed to delete expired session: {err}");
+            }
+            return Ok(None);
+        }
 
         let user = match Self::get_by_id(&state.db, session.user_id).await {
             Ok(user) => user,
