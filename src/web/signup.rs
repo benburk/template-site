@@ -2,7 +2,6 @@ use argon2::password_hash::rand_core::OsRng;
 use argon2::{Argon2, PasswordHasher as _, password_hash::SaltString};
 use askama::Template;
 use axum::extract::{ConnectInfo, State};
-use axum::response::Html;
 use axum::{
     Form,
     http::StatusCode,
@@ -20,6 +19,8 @@ use crate::app_state::AppState;
 use crate::models::user::User;
 use crate::session::create_session;
 use crate::util::current_time_micros;
+
+use super::html_template::HtmlTemplate;
 
 #[derive(Template, Default)]
 #[template(path = "signup.html")]
@@ -39,7 +40,7 @@ pub struct SignupForm {
 /// Get the signup page, or redirect to the home page if the user is already logged in.
 pub async fn get(user: Option<User>) -> impl IntoResponse {
     let Some(_) = user else {
-        return Html(Signup::default().render().unwrap()).into_response();
+        return HtmlTemplate(Signup::default()).into_response();
     };
     Redirect::to("/").into_response()
 }
@@ -59,7 +60,7 @@ pub async fn post(
     Form(form): Form<FormPayload>,
 ) -> impl IntoResponse {
     if let Err(page) = validate_inputs(&form) {
-        return page.render().unwrap().into_response();
+        return HtmlTemplate(page).into_response();
     }
 
     let created_at = current_time_micros();
@@ -75,15 +76,11 @@ pub async fn post(
     match User::insert(&state.db, &user).await {
         Ok(user_id) => user_id,
         Err(sqlx::Error::Database(err)) if err.is_unique_violation() => {
-            return Html(
-                SignupForm {
-                    username: form.username,
-                    username_message: String::from("Username already taken"),
-                    password_message: String::new(),
-                }
-                .render()
-                .unwrap(),
-            )
+            return HtmlTemplate(SignupForm {
+                username: form.username,
+                username_message: String::from("Username already taken"),
+                password_message: String::new(),
+            })
             .into_response();
         }
         Err(err) => {

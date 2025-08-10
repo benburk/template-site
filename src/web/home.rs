@@ -1,8 +1,9 @@
 use askama::Template;
-use axum::response::{Html, IntoResponse};
-use tracing::info;
+use axum::response::IntoResponse;
 
 use crate::models::user::User;
+
+use super::html_template::HtmlTemplate;
 
 #[derive(Template)]
 #[template(path = "home.html")]
@@ -11,9 +12,8 @@ struct Home {
 }
 
 pub async fn home(user_opt: Option<User>) -> impl IntoResponse {
-    info!("{user_opt:?}");
     let template = Home {
         username: user_opt.map(|user| user.username).unwrap_or_default(),
     };
-    Html(template.render().unwrap())
+    HtmlTemplate(template)
 }

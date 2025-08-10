@@ -4,6 +4,7 @@ use axum::{Router, http::header, response::IntoResponse, routing::get};
 use crate::app_state::AppState;
 
 mod home;
+mod html_template;
 mod login;
 mod signup;
 

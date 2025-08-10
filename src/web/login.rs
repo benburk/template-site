@@ -1,6 +1,5 @@
 use askama::Template;
 use axum::extract::{ConnectInfo, State};
-use axum::response::Html;
 use axum::{
     Form,
     response::{IntoResponse, Redirect},
@@ -20,6 +19,8 @@ use crate::models::user::User;
 use crate::session::create_session;
 use crate::util::current_time_micros;
 
+use super::html_template::HtmlTemplate;
+
 #[derive(Template, Default)]
 #[template(path = "login.html")]
 pub struct Login {
@@ -36,7 +37,7 @@ pub struct LoginForm {
 
 pub async fn get(user: Option<User>) -> impl IntoResponse {
     let Some(_) = user else {
-        return Html(Login::default().render().unwrap()).into_response();
+        return HtmlTemplate(Login::default()).into_response();
     };
     Redirect::to("/").into_response()
 }
@@ -67,14 +68,10 @@ pub async fn post(
             .await;
             ([("HX-Redirect", "/")], jar.add(cookie)).into_response()
         }
-        None => Html(
-            LoginForm {
-                username: form.username,
-                error_message: String::from("Invalid username or password"),
-            }
-            .render()
-            .unwrap(),
-        )
+        None => HtmlTemplate(LoginForm {
+            username: form.username,
+            error_message: String::from("Invalid username or password"),
+        })
         .into_response(),
     }
 }
