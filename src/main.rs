@@ -18,6 +18,7 @@
     clippy::print_stdout,
     clippy::question_mark_used,
     clippy::single_call_fn,
+    clippy::single_char_lifetime_names,
     clippy::std_instead_of_core,
     clippy::unwrap_used
 )]

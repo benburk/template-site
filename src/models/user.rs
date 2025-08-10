@@ -12,8 +12,8 @@ pub struct User {
 
 impl User {
     /// Inserts the user into the database and returns the new user's ID.
-    pub async fn insert(
-        db: impl SqliteExecutor<'_>,
+    pub async fn insert<'e, E: SqliteExecutor<'e>>(
+        db: E,
         user: &Self,
     ) -> Result<(), sqlx::Error> {
         sqlx::query!(
@@ -28,8 +28,8 @@ impl User {
         Ok(())
     }
 
-    pub async fn get_by_username(
-        db: impl SqliteExecutor<'_>,
+    pub async fn get_by_username<'e, E: SqliteExecutor<'e>>(
+        db: E,
         username: &str,
     ) -> Result<Self, sqlx::Error> {
         sqlx::query_as!(
@@ -46,8 +46,8 @@ impl User {
         .await
     }
 
-    pub async fn get_by_id(
-        db: impl SqliteExecutor<'_>,
+    pub async fn get_by_id<'e, E: SqliteExecutor<'e>>(
+        db: E,
         user_id: Uuid,
     ) -> Result<Self, sqlx::Error> {
         sqlx::query_as!(
@@ -66,8 +66,8 @@ impl User {
 
     /// Checks a usernames+password combination using the database and returns the user if it is valid.
     /// Returns `None` if the user does not exist or the password is incorrect.
-    pub async fn check_login(
-        db: impl SqliteExecutor<'_>,
+    pub async fn check_login<'e, E: SqliteExecutor<'e>>(
+        db: E,
         username: &str,
         password: &str,
     ) -> Option<Self> {

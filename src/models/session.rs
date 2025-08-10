@@ -12,8 +12,8 @@ pub struct Session {
 }
 
 impl Session {
-    pub async fn insert(
-        db: impl SqliteExecutor<'_>,
+    pub async fn insert<'e, E: SqliteExecutor<'e>>(
+        db: E,
         session: &Self,
     ) -> Result<i64, sqlx::Error> {
         sqlx::query!(
@@ -31,8 +31,8 @@ impl Session {
         .map(|row| row.last_insert_rowid())
     }
 
-    pub async fn get_by_id(
-        db: impl SqliteExecutor<'_>,
+    pub async fn get_by_id<'e, E: SqliteExecutor<'e>>(
+        db: E,
         id: Uuid,
     ) -> Result<Option<Self>, sqlx::Error> {
         sqlx::query_as!(
@@ -52,8 +52,8 @@ impl Session {
     }
 
     /// Don't need to check if correct user because guessing is unlikely.
-    pub async fn delete_by_id(
-        db: impl SqliteExecutor<'_>,
+    pub async fn delete_by_id<'e, E: SqliteExecutor<'e>>(
+        db: E,
         id: Uuid,
     ) -> Result<u64, sqlx::Error> {
         sqlx::query!("DELETE FROM session WHERE id = ?", id)

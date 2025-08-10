@@ -23,8 +23,8 @@ fn build_session_cookie(session_id: Uuid) -> Cookie<'static> {
 
 /// Create a new session for the user, insert it into the database,
 /// and return the associated cookie for it.
-pub async fn create_session<'e>(
-    db: impl SqliteExecutor<'e>,
+pub async fn create_session<'e, E: SqliteExecutor<'e>>(
+    db: E,
     user_id: Uuid,
     time: i64,
     ip_address: String,
@@ -37,7 +37,7 @@ pub async fn create_session<'e>(
         ip_address,
         user_agent: user_agent.to_string(),
         created_at: time,
-        expires_at: 0, // todo
+        expires_at: 0, // TODO
     };
     Session::insert(db, &session).await.unwrap();
     build_session_cookie(id)
