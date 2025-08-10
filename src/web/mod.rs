@@ -1,11 +1,10 @@
 //! Web routes.
-use axum::{Router, routing::{get, post}};
+use axum::{Router, routing::get};
 
 use crate::app_state::AppState;
 
 mod home;
 mod login;
-mod logout;
 mod signup;
 
 use home::home;
@@ -13,7 +12,9 @@ use home::home;
 pub fn router() -> Router<AppState> {
     Router::new()
         .route("/", get(home))
-        .route("/login", get(login::get).post(login::post))
-        .route("/logout", post(logout::post))
+        .route(
+            "/login",
+            get(login::get).post(login::post).delete(login::delete),
+        )
         .route("/signup", get(signup::get).post(signup::post))
 }

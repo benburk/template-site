@@ -33,7 +33,7 @@ impl Session {
     }
 
     /// Don't need to check if correct user because guessing is unlikely.
-    pub async fn delete_by_id(db: &mut SqliteConnection, id: &str) -> Result<u64, sqlx::Error> {
+    pub async fn delete_by_id(db: &mut SqliteConnection, id: Uuid) -> Result<u64, sqlx::Error> {
         sqlx::query!("DELETE FROM session WHERE id = ?", id)
             .execute(db)
             .await

@@ -7,15 +7,18 @@ use axum::{
 };
 use axum_extra::TypedHeader;
 use axum_extra::extract::CookieJar;
+use axum_extra::extract::cookie::Cookie;
 use axum_extra::headers::UserAgent;
 use serde::Deserialize;
 use std::net::SocketAddr;
 use tracing::debug;
+use uuid::Uuid;
 
 use crate::app_state::AppState;
 use crate::extractors::db_connection::DatabaseConnection;
 use crate::extractors::session::ExtractSession;
 use crate::middleware::auth;
+use crate::models::session::Session;
 use crate::util::current_time_micros;
 
 #[derive(Template, Default)]
@@ -77,4 +80,19 @@ pub async fn post(
         )
         .into_response(),
     }
+}
+
+pub async fn delete(
+    jar: CookieJar,
+    DatabaseConnection(mut conn): DatabaseConnection,
+) -> impl IntoResponse {
+    if let Some(session_cookie) = jar.get("session_id") {
+        if let Ok(session_id) = Uuid::parse_str(session_cookie.value()) {
+            let _ = Session::delete_by_id(&mut conn, session_id).await;
+        }
+    }
+    (
+        [("HX-Redirect", "/")],
+        jar.remove(Cookie::build("session_id")),
+    )
 }

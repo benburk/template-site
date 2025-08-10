@@ -13,7 +13,7 @@ use axum_extra::extract::CookieJar;
 use axum_extra::headers::UserAgent;
 use serde::Deserialize;
 use std::net::SocketAddr;
-use tracing::{debug, info, warn};
+use tracing::{info, warn};
 use uuid::Uuid;
 
 use crate::app_state::AppState;
