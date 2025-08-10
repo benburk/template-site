@@ -20,7 +20,6 @@ impl OptionalFromRequestParts<AppState> for User {
         parts: &mut Parts,
         state: &AppState,
     ) -> Result<Option<Self>, Self::Rejection> {
-        let mut conn = state.db.acquire().await.map_err(internal_error)?;
         let jar = CookieJar::from_request_parts(parts, state).await.unwrap();
 
         let Some(raw) = jar.get("session_id").map(Cookie::value) else {
@@ -35,20 +34,18 @@ impl OptionalFromRequestParts<AppState> for User {
 
         info!("Extracting session {session_id}");
 
-        let session = match Session::get_by_id(&mut conn, session_id).await {
+        let session = match Session::get_by_id(&state.db, session_id).await {
             Ok(Some(session)) => session,
             Ok(None) => return Ok(None),
             Err(err) => {
-                warn!("{err}");
                 return Err(internal_error(err));
             }
         };
 
-        let user = match Self::get_by_id(&mut conn, session.user_id).await {
+        let user = match Self::get_by_id(&state.db, session.user_id).await {
             Ok(user) => user,
             Err(Error::RowNotFound) => return Ok(None),
             Err(err) => {
-                warn!("{err}");
                 return Err(internal_error(err));
             }
         };

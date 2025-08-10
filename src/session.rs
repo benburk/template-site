@@ -2,7 +2,7 @@ use axum_extra::{
     extract::cookie::{Cookie, SameSite},
     headers::UserAgent,
 };
-use sqlx::SqliteConnection;
+use sqlx::{SqliteConnection, SqliteExecutor};
 use uuid::Uuid;
 
 use crate::models::session::Session;
@@ -23,8 +23,8 @@ fn build_session_cookie(session_id: Uuid) -> Cookie<'static> {
 
 /// Create a new session for the user, insert it into the database,
 /// and return the associated cookie for it.
-pub async fn create_session(
-    db: &mut SqliteConnection,
+pub async fn create_session<'e>(
+    db: impl SqliteExecutor<'e>,
     user_id: Uuid,
     time: i64,
     ip_address: String,

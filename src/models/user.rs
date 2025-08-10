@@ -1,5 +1,5 @@
 use argon2::{Argon2, PasswordHash, PasswordVerifier as _};
-use sqlx::{FromRow, SqliteConnection};
+use sqlx::{FromRow, SqliteConnection, SqliteExecutor};
 use uuid::Uuid;
 
 #[derive(Debug, Clone, FromRow)]
@@ -13,7 +13,7 @@ pub struct User {
 impl User {
     /// Inserts the user into the database and returns the new user's ID.
     pub async fn insert(
-        db: &mut SqliteConnection,
+        db: impl SqliteExecutor<'_>,
         user: &Self,
     ) -> Result<(), sqlx::Error> {
         sqlx::query!(
@@ -29,7 +29,7 @@ impl User {
     }
 
     pub async fn get_by_username(
-        db: &mut SqliteConnection,
+        db: impl SqliteExecutor<'_>,
         username: &str,
     ) -> Result<Self, sqlx::Error> {
         sqlx::query_as!(
@@ -47,7 +47,7 @@ impl User {
     }
 
     pub async fn get_by_id(
-        db: &mut SqliteConnection,
+        db: impl SqliteExecutor<'_>,
         user_id: Uuid,
     ) -> Result<Self, sqlx::Error> {
         sqlx::query_as!(
@@ -67,7 +67,7 @@ impl User {
     /// Checks a usernames+password combination using the database and returns the user if it is valid.
     /// Returns `None` if the user does not exist or the password is incorrect.
     pub async fn check_login(
-        db: &mut SqliteConnection,
+        db: impl SqliteExecutor<'_>,
         username: &str,
         password: &str,
     ) -> Option<Self> {

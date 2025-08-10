@@ -17,7 +17,6 @@ use tracing::{info, warn};
 use uuid::Uuid;
 
 use crate::app_state::AppState;
-use crate::extractors::db_connection::DatabaseConnection;
 use crate::models::user::User;
 use crate::session::create_session;
 use crate::util::current_time_micros;
@@ -56,17 +55,14 @@ pub async fn post(
     jar: CookieJar,
     TypedHeader(user_agent): TypedHeader<UserAgent>,
     ConnectInfo(addr): ConnectInfo<SocketAddr>,
-    DatabaseConnection(mut conn): DatabaseConnection,
-    State(_state): State<AppState>,
+    State(state): State<AppState>,
     Form(form): Form<FormPayload>,
 ) -> impl IntoResponse {
-    info!("signup::post");
     if let Err(page) = validate_inputs(&form) {
         return page.render().unwrap().into_response();
     }
 
     let created_at = current_time_micros();
-
     let password_hash = generate_password_hash(&form.password);
 
     let uuid = Uuid::new_v4();
@@ -76,7 +72,7 @@ pub async fn post(
         password_hash,
         created_at,
     };
-    match User::insert(&mut conn, &user).await {
+    match User::insert(&state.db, &user).await {
         Ok(user_id) => user_id,
         Err(sqlx::Error::Database(err)) if err.is_unique_violation() => {
             return Html(
@@ -97,7 +93,7 @@ pub async fn post(
     }
 
     let cookie = create_session(
-        &mut conn,
+        &state.db,
         user.id,
         created_at,
         addr.to_string(),

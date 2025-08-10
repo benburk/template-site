@@ -16,7 +16,6 @@ use uuid::Uuid;
 
 use crate::app_state::AppState;
 use crate::error::internal_error;
-use crate::extractors::db_connection::DatabaseConnection;
 use crate::models::session::Session;
 use crate::models::user::User;
 use crate::session::create_session;
@@ -53,15 +52,14 @@ pub async fn post(
     jar: CookieJar,
     TypedHeader(user_agent): TypedHeader<UserAgent>,
     ConnectInfo(addr): ConnectInfo<SocketAddr>,
-    DatabaseConnection(mut conn): DatabaseConnection,
-    State(_state): State<AppState>,
+    state: State<AppState>,
     Form(form): Form<FormPayload>,
 ) -> impl IntoResponse {
     let created_at = current_time_micros();
-    match User::check_login(&mut conn, &form.username, &form.password).await {
+    match User::check_login(&state.db, &form.username, &form.password).await {
         Some(user) => {
             let cookie = create_session(
-                &mut conn,
+                &state.db,
                 user.id,
                 created_at,
                 addr.to_string(),
@@ -84,11 +82,11 @@ pub async fn post(
 
 pub async fn delete(
     jar: CookieJar,
-    DatabaseConnection(mut conn): DatabaseConnection,
+    state: State<AppState>,
 ) -> impl IntoResponse {
     if let Some(session_cookie) = jar.get("session_id") {
         if let Ok(session_id) = Uuid::parse_str(session_cookie.value()) {
-            match Session::delete_by_id(&mut conn, session_id).await {
+            match Session::delete_by_id(&state.db, session_id).await {
                 Ok(_) => {}
                 Err(err) => return internal_error(err).into_response(),
             }

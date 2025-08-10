@@ -1,4 +1,4 @@
-use sqlx::{FromRow, SqliteConnection};
+use sqlx::{FromRow, SqliteConnection, SqliteExecutor};
 use uuid::Uuid;
 
 #[derive(Debug, Clone, FromRow)]
@@ -13,7 +13,7 @@ pub struct Session {
 
 impl Session {
     pub async fn insert(
-        db: &mut SqliteConnection,
+        db: impl SqliteExecutor<'_>,
         session: &Self,
     ) -> Result<i64, sqlx::Error> {
         sqlx::query!(
@@ -32,7 +32,7 @@ impl Session {
     }
 
     pub async fn get_by_id(
-        db: &mut SqliteConnection,
+        db: impl SqliteExecutor<'_>,
         id: Uuid,
     ) -> Result<Option<Self>, sqlx::Error> {
         sqlx::query_as!(
@@ -53,7 +53,7 @@ impl Session {
 
     /// Don't need to check if correct user because guessing is unlikely.
     pub async fn delete_by_id(
-        db: &mut SqliteConnection,
+        db: impl SqliteExecutor<'_>,
         id: Uuid,
     ) -> Result<u64, sqlx::Error> {
         sqlx::query!("DELETE FROM session WHERE id = ?", id)
