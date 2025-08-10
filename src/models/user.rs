@@ -29,17 +29,33 @@ impl User {
         db: &mut SqliteConnection,
         username: &str,
     ) -> Result<Self, sqlx::Error> {
-        sqlx::query_as::<_, Self>("SELECT * FROM 'user' WHERE username = ?")
-            .bind(username)
-            .fetch_one(db)
-            .await
+        sqlx::query_as!(
+            User,
+            r#"SELECT
+            id as "id: uuid::Uuid",
+            username,
+            password_hash,
+            created_at
+            FROM 'user' WHERE username = ?"#,
+            username
+        )
+        .fetch_one(db)
+        .await
     }
 
     pub async fn get_by_id(db: &mut SqliteConnection, user_id: Uuid) -> Result<Self, sqlx::Error> {
-        sqlx::query_as::<_, Self>("SELECT * FROM 'user' WHERE id = ?")
-            .bind(user_id)
-            .fetch_one(db)
-            .await
+        sqlx::query_as!(
+            User,
+            r#"SELECT
+            id as "id: uuid::Uuid",
+            username,
+            password_hash,
+            created_at
+            FROM 'user' WHERE id = ?"#,
+            user_id
+        )
+        .fetch_one(db)
+        .await
     }
 
     /// Checks a usernames+password combination using the database and returns the user if it is valid.

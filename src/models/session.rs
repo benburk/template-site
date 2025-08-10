@@ -14,7 +14,7 @@ pub struct Session {
 impl Session {
     pub async fn get_by_id(
         db: &mut SqliteConnection,
-        id: &str,
+        id: Uuid,
     ) -> Result<Option<Self>, sqlx::Error> {
         sqlx::query_as!(
             Session,

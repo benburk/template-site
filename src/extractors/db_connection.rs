@@ -2,7 +2,6 @@ use axum::{
     extract::FromRequestParts,
     http::{StatusCode, request::Parts},
 };
-use tracing::info;
 
 use crate::{app_state::AppState, error::internal_error};
 
@@ -15,9 +14,7 @@ impl FromRequestParts<AppState> for DatabaseConnection {
         _parts: &mut Parts,
         state: &AppState,
     ) -> Result<Self, Self::Rejection> {
-        info!("before db");
         let conn = state.db.acquire().await.map_err(internal_error)?;
-        info!("after db");
 
         Ok(Self(conn))
     }

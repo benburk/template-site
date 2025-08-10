@@ -4,6 +4,7 @@ use axum::{
 };
 use axum_extra::extract::{CookieJar, cookie::Cookie};
 use tracing::{info, warn};
+use uuid::Uuid;
 
 use crate::{
     app_state::AppState,
@@ -11,6 +12,7 @@ use crate::{
     models::{session::Session, user::User},
 };
 
+#[derive(Debug)]
 pub struct ExtractSession(pub User);
 
 impl OptionalFromRequestParts<AppState> for ExtractSession {
@@ -28,7 +30,12 @@ impl OptionalFromRequestParts<AppState> for ExtractSession {
             return Ok(None);
         };
 
-        info!("Extracting session");
+        let Ok(session_id) = Uuid::parse_str(session_id) else {
+            warn!("Failed to parse session_id");
+            return Ok(None);
+        };
+
+        info!("Extracting session {session_id}");
 
         let session = match Session::get_by_id(&mut conn, session_id).await {
             Ok(Some(session)) => session,

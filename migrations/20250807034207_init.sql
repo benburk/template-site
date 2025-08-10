@@ -1,13 +1,13 @@
 CREATE TABLE IF NOT EXISTS user(
-    id              TEXT NOT NULL PRIMARY KEY,
+    id              BLOB NOT NULL PRIMARY KEY,
     username        TEXT NOT NULL UNIQUE,
     password_hash   TEXT NOT NULL,
     created_at      INTEGER NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS session(
-    id          TEXT NOT NULL PRIMARY KEY,
-    user_id     TEXT NOT NULL,
+    id          BLOB NOT NULL PRIMARY KEY,
+    user_id     BLOB NOT NULL,
     ip_address  TEXT NOT NULL,
     user_agent  TEXT NOT NULL,
     created_at  INTEGER NOT NULL,

@@ -21,6 +21,7 @@ use crate::util::current_time_micros;
 #[derive(Template, Default)]
 #[template(path = "login.html")]
 pub struct Login {
+    username: String,
     form: LoginForm,
 }
 
