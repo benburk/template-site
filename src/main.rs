@@ -32,8 +32,8 @@ mod app_state;
 mod db;
 mod error;
 mod extractors;
-mod middleware;
 mod models;
+mod session;
 mod util;
 mod web;
 

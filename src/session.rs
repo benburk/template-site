@@ -42,18 +42,3 @@ pub async fn create_session(
     Session::insert(db, &session).await.unwrap();
     build_session_cookie(id)
 }
-
-/// Authenticate user and create a new session id.
-pub async fn login(
-    db: &mut SqliteConnection,
-    username: &str,
-    password: &str,
-    time: i64,
-    ip_address: String,
-    user_agent: UserAgent,
-) -> Option<Cookie<'static>> {
-    let user = User::check_login(db, username, password).await?;
-
-    let cookie = create_session(db, user.id, time, ip_address, user_agent).await;
-    Some(cookie)
-}

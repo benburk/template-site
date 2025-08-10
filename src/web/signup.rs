@@ -19,8 +19,8 @@ use uuid::Uuid;
 use crate::app_state::AppState;
 use crate::extractors::db_connection::DatabaseConnection;
 use crate::extractors::session::ExtractSession;
-use crate::middleware::auth;
 use crate::models::user::User;
+use crate::session::create_session;
 use crate::util::current_time_micros;
 
 #[derive(Template, Default)]
@@ -97,8 +97,7 @@ pub async fn post(
         }
     };
 
-    let cookie =
-        auth::create_session(&mut conn, user.id, created_at, addr.to_string(), user_agent).await;
+    let cookie = create_session(&mut conn, user.id, created_at, addr.to_string(), user_agent).await;
 
     ([("HX-Redirect", "/")], jar.add(cookie)).into_response()
 }

@@ -17,8 +17,9 @@ use uuid::Uuid;
 use crate::app_state::AppState;
 use crate::extractors::db_connection::DatabaseConnection;
 use crate::extractors::session::ExtractSession;
-use crate::middleware::auth;
 use crate::models::session::Session;
+use crate::models::user::User;
+use crate::session::create_session;
 use crate::util::current_time_micros;
 
 #[derive(Template, Default)]
@@ -59,17 +60,12 @@ pub async fn post(
     let created_at = current_time_micros();
     debug!("post request");
 
-    match auth::login(
-        &mut conn,
-        &form.username,
-        &form.password,
-        created_at,
-        addr.to_string(),
-        user_agent,
-    )
-    .await
-    {
-        Some(cookie) => ([("HX-Redirect", "/")], jar.add(cookie)).into_response(),
+    match User::check_login(&mut conn, &form.username, &form.password).await {
+        Some(user) => {
+            let cookie =
+                create_session(&mut conn, user.id, created_at, addr.to_string(), user_agent).await;
+            ([("HX-Redirect", "/")], jar.add(cookie)).into_response()
+        }
         None => Html(
             LoginForm {
                 username: form.username,
