@@ -12,6 +12,22 @@ pub struct Session {
 }
 
 impl Session {
+    pub async fn insert(db: &mut SqliteConnection, session: &Self) -> Result<i64, sqlx::Error> {
+        sqlx::query!(
+            "INSERT INTO session (id, user_id, ip_address, user_agent, created_at, expires_at)
+        VALUES (?, ?, ?, ?, ?, ?)",
+            session.id,
+            session.user_id,
+            session.ip_address,
+            session.user_agent,
+            session.created_at,
+            session.expires_at,
+        )
+        .execute(db)
+        .await
+        .map(|row| row.last_insert_rowid())
+    }
+
     pub async fn get_by_id(
         db: &mut SqliteConnection,
         id: Uuid,
@@ -38,21 +54,5 @@ impl Session {
             .execute(db)
             .await
             .map(|row| row.rows_affected())
-    }
-
-    pub async fn insert(db: &mut SqliteConnection, session: &Session) -> Result<i64, sqlx::Error> {
-        sqlx::query!(
-            "INSERT INTO session (id, user_id, ip_address, user_agent, created_at, expires_at)
-        VALUES (?, ?, ?, ?, ?, ?)",
-            session.id,
-            session.user_id,
-            session.ip_address,
-            session.user_agent,
-            session.created_at,
-            session.expires_at,
-        )
-        .execute(db)
-        .await
-        .map(|row| row.last_insert_rowid())
     }
 }

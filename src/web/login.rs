@@ -15,6 +15,7 @@ use tracing::debug;
 use uuid::Uuid;
 
 use crate::app_state::AppState;
+use crate::error::internal_error;
 use crate::extractors::db_connection::DatabaseConnection;
 use crate::models::session::Session;
 use crate::models::user::User;
@@ -83,11 +84,15 @@ pub async fn delete(
 ) -> impl IntoResponse {
     if let Some(session_cookie) = jar.get("session_id") {
         if let Ok(session_id) = Uuid::parse_str(session_cookie.value()) {
-            let _ = Session::delete_by_id(&mut conn, session_id).await;
+            match Session::delete_by_id(&mut conn, session_id).await {
+                Ok(_) => {}
+                Err(err) => return internal_error(err).into_response(),
+            }
         }
     }
     (
         [("HX-Redirect", "/")],
         jar.remove(Cookie::build("session_id")),
     )
+        .into_response()
 }

@@ -12,7 +12,7 @@ pub struct User {
 
 impl User {
     /// Inserts the user into the database and returns the new user's ID.
-    pub async fn new(db: &mut SqliteConnection, user: &User) -> Result<(), sqlx::Error> {
+    pub async fn insert(db: &mut SqliteConnection, user: &Self) -> Result<(), sqlx::Error> {
         sqlx::query!(
             "INSERT INTO user (id, username, password_hash, created_at) VALUES (?, ?, ?, ?)",
             user.id,
@@ -64,8 +64,8 @@ impl User {
         db: &mut SqliteConnection,
         username: &str,
         password: &str,
-    ) -> Option<User> {
-        match User::get_by_username(db, username).await {
+    ) -> Option<Self> {
+        match Self::get_by_username(db, username).await {
             Ok(user) => {
                 let parsed_hash =
                     PasswordHash::new(&user.password_hash).expect("Failed to parsh hash");
@@ -74,10 +74,8 @@ impl User {
                     .ok()
                     .map(|()| user)
             }
-            Err(sqlx::Error::RowNotFound) => return None,
-            Err(_err) => {
-                return None;
-            }
+            Err(sqlx::Error::RowNotFound) => None,
+            Err(_err) => None,
         }
     }
 }

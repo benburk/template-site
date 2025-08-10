@@ -10,10 +10,10 @@ struct Home {
     username: String,
 }
 
-pub async fn home(user: Option<User>) -> impl IntoResponse {
-    info!("{user:?}");
+pub async fn home(user_opt: Option<User>) -> impl IntoResponse {
+    info!("{user_opt:?}");
     let template = Home {
-        username: user.map(|u| u.username).unwrap_or_default(),
+        username: user_opt.map(|user| user.username).unwrap_or_default(),
     };
     Html(template.render().unwrap())
 }

@@ -76,7 +76,7 @@ pub async fn post(
         password_hash,
         created_at,
     };
-    match User::new(&mut conn, &user).await {
+    match User::insert(&mut conn, &user).await {
         Ok(user_id) => user_id,
         Err(sqlx::Error::Database(err)) if err.is_unique_violation() => {
             return Html(

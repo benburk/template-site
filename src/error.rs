@@ -1,3 +1,5 @@
+use std::error;
+
 use axum::http::StatusCode;
 use tracing::warn;
 
@@ -5,7 +7,7 @@ use tracing::warn;
 /// response.
 pub fn internal_error<E>(err: E) -> (StatusCode, String)
 where
-    E: std::error::Error,
+    E: error::Error,
 {
     warn!("internal server error {err}");
     (StatusCode::INTERNAL_SERVER_ERROR, err.to_string())

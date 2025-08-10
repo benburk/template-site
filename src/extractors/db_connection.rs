@@ -2,10 +2,11 @@ use axum::{
     extract::FromRequestParts,
     http::{StatusCode, request::Parts},
 };
+use sqlx::pool::PoolConnection;
 
 use crate::{app_state::AppState, error::internal_error};
 
-pub struct DatabaseConnection(pub sqlx::pool::PoolConnection<sqlx::Sqlite>);
+pub struct DatabaseConnection(pub PoolConnection<sqlx::Sqlite>);
 
 impl FromRequestParts<AppState> for DatabaseConnection {
     type Rejection = (StatusCode, String);

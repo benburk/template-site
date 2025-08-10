@@ -1,8 +1,9 @@
 use axum::{
-    extract::{FromRequestParts, OptionalFromRequestParts},
+    extract::{FromRequestParts as _, OptionalFromRequestParts},
     http::{StatusCode, request::Parts},
 };
 use axum_extra::extract::{CookieJar, cookie::Cookie};
+use sqlx::Error;
 use tracing::{info, warn};
 use uuid::Uuid;
 
@@ -22,12 +23,12 @@ impl OptionalFromRequestParts<AppState> for User {
         let mut conn = state.db.acquire().await.map_err(internal_error)?;
         let jar = CookieJar::from_request_parts(parts, state).await.unwrap();
 
-        let Some(session_id) = jar.get("session_id").map(Cookie::value) else {
+        let Some(raw) = jar.get("session_id").map(Cookie::value) else {
             info!("No session found");
             return Ok(None);
         };
 
-        let Ok(session_id) = Uuid::parse_str(session_id) else {
+        let Ok(session_id) = Uuid::parse_str(raw) else {
             warn!("Failed to parse session_id");
             return Ok(None);
         };
@@ -43,9 +44,9 @@ impl OptionalFromRequestParts<AppState> for User {
             }
         };
 
-        let user = match User::get_by_id(&mut conn, session.user_id).await {
+        let user = match Self::get_by_id(&mut conn, session.user_id).await {
             Ok(user) => user,
-            Err(sqlx::Error::RowNotFound) => return Ok(None),
+            Err(Error::RowNotFound) => return Ok(None),
             Err(err) => {
                 warn!("{err}");
                 return Err(internal_error(err));
