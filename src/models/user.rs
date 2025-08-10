@@ -74,7 +74,7 @@ impl User {
         match Self::get_by_username(db, username).await {
             Ok(user) => {
                 let parsed_hash = PasswordHash::new(&user.password_hash)
-                    .expect("Failed to parsh hash");
+                    .expect("Failed to parse hash");
                 Argon2::default()
                     .verify_password(password.as_bytes(), &parsed_hash)
                     .ok()

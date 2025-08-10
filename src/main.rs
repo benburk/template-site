@@ -51,7 +51,8 @@ fn configure_logging() {
         .with_ansi(false)
         .finish();
 
-    subscriber::set_global_default(subscriber).unwrap();
+    subscriber::set_global_default(subscriber)
+        .expect("Multiple global default subscribers set");
 }
 
 #[tokio::main]
@@ -64,11 +65,11 @@ async fn main() {
 
     let app = Router::new()
         .merge(web::router())
-        .nest("/api", api::router())
+        .nest("/api/v1", api::router())
         .with_state(state);
 
     let addr = SocketAddr::from(([0, 0, 0, 0], 3000));
-    let listener = TcpListener::bind(addr).await.unwrap();
+    let listener = TcpListener::bind(addr).await.expect("Failed to bind");
 
     info!("Starting server on {addr}");
 
@@ -77,5 +78,5 @@ async fn main() {
         app.into_make_service_with_connect_info::<SocketAddr>(),
     )
     .await
-    .unwrap();
+    .expect("Failed to serve");
 }

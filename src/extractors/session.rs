@@ -20,7 +20,7 @@ impl OptionalFromRequestParts<AppState> for User {
         parts: &mut Parts,
         state: &AppState,
     ) -> Result<Option<Self>, Self::Rejection> {
-        let jar = CookieJar::from_request_parts(parts, state).await.unwrap();
+        let Ok(jar) = CookieJar::from_request_parts(parts, state).await;
 
         let Some(raw) = jar.get("session_id").map(Cookie::value) else {
             info!("No session found");
