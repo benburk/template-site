@@ -5,7 +5,7 @@ use axum_extra::{
 use sqlx::SqliteConnection;
 use uuid::Uuid;
 
-use crate::models::{session::Session, user::User};
+use crate::models::session::Session;
 
 fn build_session_cookie(session_id: Uuid) -> Cookie<'static> {
     // This is a workaround so when we're testing locally

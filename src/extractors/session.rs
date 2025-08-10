@@ -12,10 +12,7 @@ use crate::{
     models::{session::Session, user::User},
 };
 
-#[derive(Debug)]
-pub struct ExtractSession(pub User);
-
-impl OptionalFromRequestParts<AppState> for ExtractSession {
+impl OptionalFromRequestParts<AppState> for User {
     type Rejection = (StatusCode, String);
 
     async fn from_request_parts(
@@ -55,6 +52,6 @@ impl OptionalFromRequestParts<AppState> for ExtractSession {
             }
         };
 
-        Ok(Some(ExtractSession(user)))
+        Ok(Some(user))
     }
 }

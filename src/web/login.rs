@@ -16,7 +16,6 @@ use uuid::Uuid;
 
 use crate::app_state::AppState;
 use crate::extractors::db_connection::DatabaseConnection;
-use crate::extractors::session::ExtractSession;
 use crate::models::session::Session;
 use crate::models::user::User;
 use crate::session::create_session;
@@ -36,7 +35,7 @@ pub struct LoginForm {
     error_message: String,
 }
 
-pub async fn get(user: Option<ExtractSession>) -> impl IntoResponse {
+pub async fn get(user: Option<User>) -> impl IntoResponse {
     let Some(_) = user else {
         return Html(Login::default().render().unwrap()).into_response();
     };

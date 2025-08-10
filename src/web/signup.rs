@@ -18,7 +18,6 @@ use uuid::Uuid;
 
 use crate::app_state::AppState;
 use crate::extractors::db_connection::DatabaseConnection;
-use crate::extractors::session::ExtractSession;
 use crate::models::user::User;
 use crate::session::create_session;
 use crate::util::current_time_micros;
@@ -39,7 +38,7 @@ pub struct SignupForm {
 }
 
 /// Get the signup page, or redirect to the home page if the user is already logged in.
-pub async fn get(user: Option<ExtractSession>) -> impl IntoResponse {
+pub async fn get(user: Option<User>) -> impl IntoResponse {
     let Some(_) = user else {
         return Html(Signup::default().render().unwrap()).into_response();
     };
