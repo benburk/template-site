@@ -16,10 +16,20 @@ impl Session {
         db: &mut SqliteConnection,
         id: &str,
     ) -> Result<Option<Self>, sqlx::Error> {
-        sqlx::query_as::<_, Self>("SELECT * FROM 'session' WHERE id = ?")
-            .bind(id)
-            .fetch_optional(db)
-            .await
+        sqlx::query_as!(
+            Session,
+            r#"SELECT
+            id as "id: uuid::Uuid",
+            user_id as "user_id: uuid::Uuid",
+            ip_address,
+            user_agent,
+            created_at,
+            expires_at
+            FROM 'session' WHERE id = ?"#,
+            id
+        )
+        .fetch_optional(db)
+        .await
     }
 
     /// Don't need to check if correct user because guessing is unlikely.

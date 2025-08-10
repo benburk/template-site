@@ -38,9 +38,24 @@ mod util;
 mod web;
 
 use app_state::AppState;
+use tracing::info;
+use tracing_appender::rolling::{RollingFileAppender, Rotation};
+
+fn configure_logging() {
+    let file_appender = RollingFileAppender::new(Rotation::DAILY, "logs", "basic-site.log");
+
+    let subscriber = tracing_subscriber::fmt()
+        .with_writer(file_appender)
+        .with_ansi(false)
+        .finish();
+
+    tracing::subscriber::set_global_default(subscriber).unwrap();
+}
 
 #[tokio::main]
 async fn main() {
+    configure_logging();
+
     let db = connect_to_database().await;
 
     let state = AppState { db };
@@ -53,7 +68,12 @@ async fn main() {
     let addr = SocketAddr::from(([0, 0, 0, 0], 3000));
     let listener = TcpListener::bind(addr).await.unwrap();
 
-    println!("Starting server on http://{addr}/");
+    info!("Starting server on {addr}");
 
-    axum::serve(listener, app).await.unwrap();
+    axum::serve(
+        listener,
+        app.into_make_service_with_connect_info::<SocketAddr>(),
+    )
+    .await
+    .unwrap();
 }

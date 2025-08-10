@@ -3,6 +3,7 @@ use axum::{
     http::{StatusCode, request::Parts},
 };
 use axum_extra::extract::{CookieJar, cookie::Cookie};
+use tracing::{info, warn};
 
 use crate::{
     app_state::AppState,
@@ -23,19 +24,28 @@ impl OptionalFromRequestParts<AppState> for ExtractSession {
         let jar = CookieJar::from_request_parts(parts, state).await.unwrap();
 
         let Some(session_id) = jar.get("session_id").map(Cookie::value) else {
+            info!("No session found");
             return Ok(None);
         };
+
+        info!("Extracting session");
 
         let session = match Session::get_by_id(&mut conn, session_id).await {
             Ok(Some(session)) => session,
             Ok(None) => return Ok(None),
-            Err(err) => return Err(internal_error(err)),
+            Err(err) => {
+                warn!("{err}");
+                return Err(internal_error(err));
+            }
         };
 
         let user = match User::get_by_id(&mut conn, session.user_id).await {
             Ok(user) => user,
             Err(sqlx::Error::RowNotFound) => return Ok(None),
-            Err(err) => return Err(internal_error(err)),
+            Err(err) => {
+                warn!("{err}");
+                return Err(internal_error(err));
+            }
         };
 
         Ok(Some(ExtractSession(user)))

@@ -1,5 +1,4 @@
 use argon2::{Argon2, PasswordHash, PasswordVerifier as _};
-use serde::{Deserialize, Serialize};
 use sqlx::{FromRow, SqliteConnection};
 use uuid::Uuid;
 

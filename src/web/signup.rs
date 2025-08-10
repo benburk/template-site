@@ -13,13 +13,13 @@ use axum_extra::extract::CookieJar;
 use axum_extra::headers::UserAgent;
 use serde::Deserialize;
 use std::net::SocketAddr;
+use tracing::{debug, info, warn};
 use uuid::Uuid;
 
 use crate::app_state::AppState;
 use crate::extractors::db_connection::DatabaseConnection;
 use crate::extractors::session::ExtractSession;
 use crate::middleware::auth;
-use crate::models::invite::Invite;
 use crate::models::user::User;
 use crate::util::current_time_micros;
 
@@ -36,7 +36,6 @@ pub struct SignupForm {
     username: String,
     username_message: String,
     password_message: String,
-    invite_message: String,
 }
 
 /// Get the signup page, or redirect to the home page if the user is already logged in.
@@ -51,7 +50,6 @@ pub async fn get(user: Option<ExtractSession>) -> impl IntoResponse {
 pub struct FormPayload {
     username: String,
     password: String,
-    invite_code: String,
 }
 
 /// Handle a signup request.
@@ -60,9 +58,10 @@ pub async fn post(
     TypedHeader(user_agent): TypedHeader<UserAgent>,
     ConnectInfo(addr): ConnectInfo<SocketAddr>,
     DatabaseConnection(mut conn): DatabaseConnection,
-    State(state): State<AppState>,
+    State(_state): State<AppState>,
     Form(form): Form<FormPayload>,
 ) -> impl IntoResponse {
+    info!("signup::post");
     if let Err(page) = validate_inputs(&form) {
         return page.render().unwrap().into_response();
     }
@@ -86,7 +85,6 @@ pub async fn post(
                     username: form.username,
                     username_message: "Username already taken".to_string(),
                     password_message: String::new(),
-                    invite_message: String::new(),
                 }
                 .render()
                 .unwrap(),
@@ -94,28 +92,15 @@ pub async fn post(
             .into_response();
         }
         Err(err) => {
+            warn!("{err}");
             return StatusCode::INTERNAL_SERVER_ERROR.into_response();
         }
     };
 
-    match Invite::check_and_claim(&mut conn, &form.invite_code, user.id).await {
-        Ok(Some(_)) => {
-            let cookie =
-                auth::create_session(&mut conn, user.id, created_at, addr.to_string(), user_agent)
-                    .await;
+    let cookie =
+        auth::create_session(&mut conn, user.id, created_at, addr.to_string(), user_agent).await;
 
-            ([("HX-Redirect", "/")], jar.add(cookie)).into_response()
-        }
-        Ok(None) => SignupForm {
-            username: form.username.clone(),
-            invite_message: "Invite code does not exist or has already been claimed".to_string(),
-            ..Default::default()
-        }
-        .render()
-        .unwrap()
-        .into_response(),
-        Err(err) => StatusCode::INTERNAL_SERVER_ERROR.into_response(),
-    }
+    ([("HX-Redirect", "/")], jar.add(cookie)).into_response()
 }
 
 fn generate_password_hash(plaintext_password: &str) -> String {
@@ -135,7 +120,6 @@ fn validate_inputs(form: &FormPayload) -> Result<(), SignupForm> {
             username: form.username.clone(),
             username_message,
             password_message,
-            invite_message: String::new(),
         })
     } else {
         Ok(())
