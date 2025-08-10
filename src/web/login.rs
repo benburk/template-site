@@ -69,7 +69,7 @@ pub async fn post(
         None => Html(
             LoginForm {
                 username: form.username,
-                error_message: "Invalid username or password".to_string(),
+                error_message: String::from("Invalid username or password"),
             }
             .render()
             .unwrap(),

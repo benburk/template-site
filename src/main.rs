@@ -38,7 +38,7 @@ mod util;
 mod web;
 
 use app_state::AppState;
-use tracing::info;
+use tracing::{info, subscriber};
 use tracing_appender::rolling::{RollingFileAppender, Rotation};
 
 fn configure_logging() {
@@ -49,7 +49,7 @@ fn configure_logging() {
         .with_ansi(false)
         .finish();
 
-    tracing::subscriber::set_global_default(subscriber).unwrap();
+    subscriber::set_global_default(subscriber).unwrap();
 }
 
 #[tokio::main]

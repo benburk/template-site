@@ -1,5 +1,5 @@
 use argon2::password_hash::rand_core::OsRng;
-use argon2::{Argon2, PasswordHasher, password_hash::SaltString};
+use argon2::{Argon2, PasswordHasher as _, password_hash::SaltString};
 use askama::Template;
 use axum::extract::{ConnectInfo, State};
 use axum::response::Html;
@@ -83,7 +83,7 @@ pub async fn post(
             return Html(
                 SignupForm {
                     username: form.username,
-                    username_message: "Username already taken".to_string(),
+                    username_message: String::from("Username already taken"),
                     password_message: String::new(),
                 }
                 .render()
@@ -95,7 +95,7 @@ pub async fn post(
             warn!("{err}");
             return StatusCode::INTERNAL_SERVER_ERROR.into_response();
         }
-    };
+    }
 
     let cookie = create_session(&mut conn, user.id, created_at, addr.to_string(), user_agent).await;
 
@@ -127,18 +127,20 @@ fn validate_inputs(form: &FormPayload) -> Result<(), SignupForm> {
 
 fn validate_username(username: &str) -> String {
     if username.len() < 5 || username.len() > 20 || !username.chars().all(char::is_alphanumeric) {
-        "Username must be between 5 and 20 characters, and only contain letters / numbers."
+        String::from(
+            "Username must be between 5 and 20 characters, and only contain letters / numbers.",
+        )
     } else {
-        ""
+        String::new()
     }
-    .to_string()
 }
 
 fn validate_password(password: &str) -> String {
     if password.len() < 8 || password.len() > 60 || !password.is_ascii() {
-        "Password must be between 8 and 60 characters and only contain ascii characters."
+        String::from(
+            "Password must be between 8 and 60 characters and only contain ascii characters.",
+        )
     } else {
-        ""
+        String::new()
     }
-    .to_string()
 }
