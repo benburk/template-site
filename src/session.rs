@@ -2,7 +2,7 @@ use axum_extra::{
     extract::cookie::{Cookie, SameSite},
     headers::UserAgent,
 };
-use sqlx::{SqliteConnection, SqliteExecutor};
+use sqlx::SqliteExecutor;
 use uuid::Uuid;
 
 use crate::models::session::Session;

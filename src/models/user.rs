@@ -1,5 +1,5 @@
 use argon2::{Argon2, PasswordHash, PasswordVerifier as _};
-use sqlx::{FromRow, SqliteConnection, SqliteExecutor};
+use sqlx::{FromRow, SqliteExecutor};
 use uuid::Uuid;
 
 #[derive(Debug, Clone, FromRow)]

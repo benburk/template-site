@@ -1,4 +1,4 @@
-use sqlx::{FromRow, SqliteConnection, SqliteExecutor};
+use sqlx::{FromRow, SqliteExecutor};
 use uuid::Uuid;
 
 #[derive(Debug, Clone, FromRow)]

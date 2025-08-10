@@ -11,7 +11,6 @@ use axum_extra::extract::cookie::Cookie;
 use axum_extra::headers::UserAgent;
 use serde::Deserialize;
 use std::net::SocketAddr;
-use tracing::debug;
 use uuid::Uuid;
 
 use crate::app_state::AppState;
