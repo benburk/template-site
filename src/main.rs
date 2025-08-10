@@ -30,6 +30,8 @@ use tokio::net::TcpListener;
 mod api;
 mod app_state;
 mod db;
+mod error;
+mod extractors;
 mod middleware;
 mod models;
 mod util;

@@ -1,22 +1,44 @@
 use argon2::{Argon2, PasswordHash, PasswordVerifier as _};
 use serde::{Deserialize, Serialize};
-use sqlx::{Executor, FromRow, Sqlite, SqliteConnection};
+use sqlx::{FromRow, SqliteConnection};
+use uuid::Uuid;
 
-#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+#[derive(Debug, Clone, FromRow)]
 pub struct User {
-    pub id: String,
+    pub id: Uuid,
     pub username: String,
     pub password_hash: String,
     pub created_at: i64,
 }
 
 impl User {
+    /// Inserts the user into the database and returns the new user's ID.
+    pub async fn new(db: &mut SqliteConnection, user: &User) -> Result<(), sqlx::Error> {
+        sqlx::query!(
+            "INSERT INTO user (id, username, password_hash, created_at) VALUES (?, ?, ?, ?)",
+            user.id,
+            user.username,
+            user.password_hash,
+            user.created_at
+        )
+        .execute(db)
+        .await?;
+        Ok(())
+    }
+
     pub async fn get_by_username(
         db: &mut SqliteConnection,
         username: &str,
     ) -> Result<Self, sqlx::Error> {
         sqlx::query_as::<_, Self>("SELECT * FROM 'user' WHERE username = ?")
             .bind(username)
+            .fetch_one(db)
+            .await
+    }
+
+    pub async fn get_by_id(db: &mut SqliteConnection, user_id: Uuid) -> Result<Self, sqlx::Error> {
+        sqlx::query_as::<_, Self>("SELECT * FROM 'user' WHERE id = ?")
+            .bind(user_id)
             .fetch_one(db)
             .await
     }
@@ -38,9 +60,7 @@ impl User {
                     .map(|()| user)
             }
             Err(sqlx::Error::RowNotFound) => return None,
-            Err(err) => {
-                // TODO
-                // error!(err = ?err, "Failed to get user");
+            Err(_err) => {
                 return None;
             }
         }

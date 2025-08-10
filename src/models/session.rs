@@ -1,10 +1,10 @@
-use serde::{Deserialize, Serialize};
-use sqlx::{Executor, FromRow, Sqlite};
+use sqlx::{FromRow, SqliteConnection};
+use uuid::Uuid;
 
-#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+#[derive(Debug, Clone, FromRow)]
 pub struct Session {
-    pub id: String,
-    pub user_id: String,
+    pub id: Uuid,
+    pub user_id: Uuid,
     pub ip_address: String,
     pub user_agent: String,
     pub created_at: i64,
@@ -12,10 +12,25 @@ pub struct Session {
 }
 
 impl Session {
-    pub async fn insert<'c, E: Executor<'c, Database = Sqlite>>(
-        db: E,
-        session: &Session,
-    ) -> Result<i64, sqlx::Error> {
+    pub async fn get_by_id(
+        db: &mut SqliteConnection,
+        id: &str,
+    ) -> Result<Option<Self>, sqlx::Error> {
+        sqlx::query_as::<_, Self>("SELECT * FROM 'session' WHERE id = ?")
+            .bind(id)
+            .fetch_optional(db)
+            .await
+    }
+
+    /// Don't need to check if correct user because guessing is unlikely.
+    pub async fn delete_by_id(db: &mut SqliteConnection, id: &str) -> Result<u64, sqlx::Error> {
+        sqlx::query!("DELETE FROM session WHERE id = ?", id)
+            .execute(db)
+            .await
+            .map(|row| row.rows_affected())
+    }
+
+    pub async fn insert(db: &mut SqliteConnection, session: &Session) -> Result<i64, sqlx::Error> {
         sqlx::query!(
             "INSERT INTO session (id, user_id, ip_address, user_agent, created_at, expires_at)
         VALUES (?, ?, ?, ?, ?, ?)",

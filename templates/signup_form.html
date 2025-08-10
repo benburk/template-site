@@ -1,0 +1,35 @@
+<form hx-post="/signup" hx-swap="outerHTML" method="post">
+    <h1>Sign up</h1>
+
+    <p>Currently invite-only.</p>
+
+    <fieldset>
+        <label>Username
+            {% if username_message.len() == 0 %}
+            <input name="username" type="text" placeholder="Username" value="{{username}}" required />
+            {% else %}
+            <input name="username" type="text" placeholder="Username" value="{{username}}" required aria-invalid="true" />
+            <small>{{username_message}}</small>
+            {% endif %}
+        </label>
+
+        <label>Password
+            {% if password_message.len() == 0 %}
+            <input name="password" type="password" placeholder="Password" required />
+            {% else %}
+            <input name="password" type="password" placeholder="Password" required aria-invalid="true" />
+            <small>{{password_message}}</small>
+            {% endif %}
+        </label>
+
+        <label>Invite code
+            {% if invite_message.len() == 0 %}
+            <input name="invite_code" type="text" placeholder="Invite code" required />
+            {% else %}
+            <input name="invite_code" type="text" placeholder="Invite code" required aria-invalid="true" />
+            <small>{{invite_message}}</small>
+            {% endif %}
+        </label>
+    </fieldset>
+    <button type="submit">Sign up</button>
+</form>

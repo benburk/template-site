@@ -3,7 +3,8 @@ use axum::{Router, routing::get};
 
 use crate::app_state::AppState;
 
-pub mod home;
+mod home;
+mod signup;
 
 use home::home;
 
