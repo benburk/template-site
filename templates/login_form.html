@@ -1,43 +1,16 @@
-<div class="max-w-md mx-auto mt-8">
-    <h2 class="text-2xl font-bold mb-4">Login</h2>
-    
-    <form hx-post="/login" hx-swap="outerHTML" class="space-y-4">
-        {% if !error_message.is_empty() %}
-        <div class="text-red-600 text-sm">{{ error_message }}</div>
+<form hx-post="/login" hx-swap="outerHTML" method="post">
+    <h1>Login</h1>
+    <fieldset>
+        {% if error_message.len() == 0 %}
+        <label>Username <input name="username" type="text" placeholder="Username" required /></label>
+        <label>Password <input name="password" type="password" placeholder="Password" required /></label>
+        {% else %}
+        <label>Username <input name="username" type="text" placeholder="Username" required aria-invalid="true"
+                value="{{ username }}"/></label>
+        <label>Password <input name="password" type="password" placeholder="Password" aria-invalid="true" required />
+            <small>{{error_message}}</small>
+        </label>
         {% endif %}
-        
-        <div>
-            <label for="username" class="block text-sm font-medium mb-1">Username</label>
-            <input 
-                type="text" 
-                id="username" 
-                name="username" 
-                value="{{ username }}"
-                required
-                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-        </div>
-        
-        <div>
-            <label for="password" class="block text-sm font-medium mb-1">Password</label>
-            <input 
-                type="password" 
-                id="password" 
-                name="password" 
-                required
-                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-        </div>
-        
-        <button 
-            type="submit" 
-            class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition duration-200"
-        >
-            Login
-        </button>
-    </form>
-    
-    <p class="mt-4 text-center text-sm">
-        Don't have an account? <a href="/signup" class="text-blue-600 hover:underline">Sign up</a>
-    </p>
-</div>
+    </fieldset>
+    <button type="submit">Log in</button>
+</form>

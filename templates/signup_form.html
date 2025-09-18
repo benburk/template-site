@@ -5,7 +5,8 @@
             {% if username_message.len() == 0 %}
             <input name="username" type="text" placeholder="Username" value="{{username}}" required />
             {% else %}
-            <input name="username" type="text" placeholder="Username" value="{{username}}" required aria-invalid="true" />
+            <input name="username" type="text" placeholder="Username" value="{{username}}" required
+                aria-invalid="true" />
             <small>{{username_message}}</small>
             {% endif %}
         </label>
