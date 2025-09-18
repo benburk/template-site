@@ -3,7 +3,7 @@ use axum::{
     Router,
     http::header,
     response::IntoResponse,
-    routing::{get, post},
+    routing::{delete, get, post},
 };
 
 use crate::app_state::AppState;
@@ -13,6 +13,7 @@ mod home;
 mod html_template;
 mod login;
 mod profile;
+mod session;
 mod settings;
 mod signup;
 
@@ -41,10 +42,9 @@ pub fn router() -> Router<AppState> {
         .route("/", get(home))
         .route("/about", get(about))
         .route("/users/{username}", get(profile))
-        .route(
-            "/login",
-            get(login::get).post(login::post).delete(login::delete),
-        )
+        .route("/login", get(login::get))
+        .route("/session", post(session::post).delete(session::delete))
+        .route("/sessions/{session_id}", delete(session::delete_by_id))
         .route("/signup", get(signup::get).post(signup::post))
         .route("/settings", get(settings::get))
         .route("/settings/username", post(settings::update_username))

@@ -1,23 +1,7 @@
 use askama::Template;
-use axum::extract::{ConnectInfo, State};
-use axum::{
-    Form,
-    response::{IntoResponse, Redirect},
-};
-use axum_extra::TypedHeader;
-use axum_extra::extract::CookieJar;
-use axum_extra::extract::cookie::Cookie;
-use axum_extra::headers::UserAgent;
-use serde::Deserialize;
-use std::net::SocketAddr;
-use uuid::Uuid;
+use axum::response::{IntoResponse, Redirect};
 
-use crate::app_state::AppState;
-use crate::error::internal_error;
-use crate::models::session::Session;
 use crate::models::user::User;
-use crate::session::create_session;
-use crate::util::current_time_micros;
 
 use super::html_template::HtmlTemplate;
 
@@ -31,8 +15,8 @@ pub struct Login {
 #[derive(Template, Default)]
 #[template(path = "login_form.html")]
 pub struct LoginForm {
-    username: String,
-    error_message: String,
+    pub username: String,
+    pub error_message: String,
 }
 
 pub async fn get(user: Option<User>) -> impl IntoResponse {
@@ -40,57 +24,4 @@ pub async fn get(user: Option<User>) -> impl IntoResponse {
         return HtmlTemplate(Login::default()).into_response();
     };
     Redirect::to("/").into_response()
-}
-
-#[derive(Deserialize, Debug)]
-pub struct FormPayload {
-    username: String,
-    password: String,
-}
-
-pub async fn post(
-    jar: CookieJar,
-    TypedHeader(user_agent): TypedHeader<UserAgent>,
-    ConnectInfo(addr): ConnectInfo<SocketAddr>,
-    state: State<AppState>,
-    Form(form): Form<FormPayload>,
-) -> impl IntoResponse {
-    let created_at = current_time_micros();
-    match User::check_login(&state.db, &form.username, &form.password).await {
-        Some(user) => {
-            let cookie = create_session(
-                &state.db,
-                user.id,
-                created_at,
-                addr.to_string(),
-                user_agent,
-            )
-            .await;
-            ([("HX-Redirect", "/")], jar.add(cookie)).into_response()
-        }
-        None => HtmlTemplate(LoginForm {
-            username: form.username,
-            error_message: String::from("Invalid username or password"),
-        })
-        .into_response(),
-    }
-}
-
-pub async fn delete(
-    jar: CookieJar,
-    state: State<AppState>,
-) -> impl IntoResponse {
-    if let Some(session_cookie) = jar.get("session_id")
-        && let Ok(session_id) = Uuid::parse_str(session_cookie.value())
-    {
-        match Session::delete_by_id(&state.db, session_id).await {
-            Ok(_) => {}
-            Err(err) => return internal_error(err).into_response(),
-        }
-    }
-    (
-        [("HX-Redirect", "/")],
-        jar.remove(Cookie::build("session_id")),
-    )
-        .into_response()
 }

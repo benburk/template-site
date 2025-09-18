@@ -1,6 +1,8 @@
 use sqlx::{FromRow, SqliteExecutor};
 use uuid::Uuid;
 
+use crate::util::current_time_micros;
+
 #[derive(Debug, Clone, FromRow)]
 pub struct Session {
     pub id: Uuid,
@@ -60,5 +62,28 @@ impl Session {
             .execute(db)
             .await
             .map(|row| row.rows_affected())
+    }
+
+    pub async fn get_by_user_id<'e, E: SqliteExecutor<'e>>(
+        db: E,
+        user_id: Uuid,
+    ) -> Result<Vec<Self>, sqlx::Error> {
+        let now = current_time_micros();
+        sqlx::query_as!(
+            Session,
+            r#"SELECT
+            id as "id: uuid::Uuid",
+            user_id as "user_id: uuid::Uuid",
+            ip_address,
+            user_agent,
+            created_at,
+            expires_at
+            FROM 'session' WHERE user_id = ? AND expires_at > ?
+            ORDER BY created_at DESC"#,
+            user_id,
+            now
+        )
+        .fetch_all(db)
+        .await
     }
 }

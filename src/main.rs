@@ -15,7 +15,6 @@ mod error;
 mod extractors;
 mod models;
 mod password;
-mod session;
 mod util;
 mod web;
 

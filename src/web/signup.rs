@@ -16,7 +16,6 @@ use uuid::Uuid;
 use crate::app_state::AppState;
 use crate::models::user::User;
 use crate::password;
-use crate::session::create_session;
 use crate::util::current_time_micros;
 
 use super::html_template::HtmlTemplate;
@@ -88,7 +87,7 @@ pub async fn post(
         }
     }
 
-    let cookie = create_session(
+    let cookie = super::session::create_session(
         &state.db,
         user.id,
         created_at,
