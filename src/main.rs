@@ -3,6 +3,8 @@ use std::net::SocketAddr;
 use axum::Router;
 use db::connect_to_database;
 use tokio::net::TcpListener;
+use tower_http::LatencyUnit;
+use tower_http::trace::{self, TraceLayer};
 
 mod api;
 mod app_state;
@@ -15,7 +17,7 @@ mod util;
 mod web;
 
 use app_state::AppState;
-use tracing::{info, subscriber};
+use tracing::{Level, info, subscriber};
 use tracing_appender::rolling::{RollingFileAppender, Rotation};
 
 fn configure_logging() {
@@ -42,6 +44,17 @@ async fn main() {
     let app = Router::new()
         .merge(web::router())
         .nest("/api/v1", api::router())
+        .layer(
+            TraceLayer::new_for_http()
+                .make_span_with(
+                    trace::DefaultMakeSpan::new().level(Level::INFO),
+                )
+                .on_response(
+                    trace::DefaultOnResponse::new()
+                        .level(Level::INFO)
+                        .latency_unit(LatencyUnit::Micros),
+                ),
+        )
         .with_state(state);
 
     let addr = SocketAddr::from(([0, 0, 0, 0], 3000));

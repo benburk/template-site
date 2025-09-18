@@ -1,5 +1,8 @@
 set dotenv-load
 
+run:
+    cargo run
+
 check:
     #!/usr/bin/env fish
     set status_flag 0
