@@ -3,11 +3,13 @@ use axum::{Router, http::header, response::IntoResponse, routing::get};
 
 use crate::app_state::AppState;
 
+mod about;
 mod home;
 mod html_template;
 mod login;
 mod signup;
 
+use about::about;
 use home::home;
 
 async fn get_pico_css() -> impl IntoResponse {
@@ -29,6 +31,7 @@ pub fn router() -> Router<AppState> {
         .route("/pico.min.css", get(get_pico_css))
         .route("/htmx.min.js", get(get_htmx))
         .route("/", get(home))
+        .route("/about", get(about))
         .route(
             "/login",
             get(login::get).post(login::post).delete(login::delete),
