@@ -6,7 +6,7 @@ use axum::http::Request;
 use db::connect_to_database;
 use tokio::net::TcpListener;
 use tower_http::trace::TraceLayer;
-use tracing::{field, instrument::WithSubscriber};
+use tracing::field;
 
 mod api;
 mod app_state;
@@ -32,11 +32,12 @@ fn configure_logging() {
         .with_ansi(false)
         .with_file(true)
         .with_line_number(true)
-        .json()
         .with_env_filter(
             EnvFilter::try_from_default_env()
                 .or_else(|_| {
-                    EnvFilter::try_new("basic_site=debug,tower_http=error")
+                    EnvFilter::try_new(
+                        "basic_site=debug,tower_http::trace=debug",
+                    )
                 })
                 .unwrap(),
         )
