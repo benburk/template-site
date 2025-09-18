@@ -21,46 +21,77 @@ impl OptionalFromRequestParts<AppState> for User {
         parts: &mut Parts,
         state: &AppState,
     ) -> Result<Option<Self>, Self::Rejection> {
-        let Ok(jar) = CookieJar::from_request_parts(parts, state).await;
-
-        let Some(raw) = jar.get("session_id").map(Cookie::value) else {
-            info!("No session found");
+        let maybe_session_id = extract_session_id(parts, state).await?;
+        let Some(session_id) = maybe_session_id else {
             return Ok(None);
         };
 
-        let Ok(session_id) = Uuid::parse_str(raw) else {
-            warn!("Failed to parse session_id");
+        let maybe_session = load_session(&state.db, session_id).await?;
+        let Some(session) = maybe_session else {
             return Ok(None);
         };
 
-        info!("Extracting session {session_id}");
-
-        let session = match Session::get_by_id(&state.db, session_id).await {
-            Ok(Some(session)) => session,
-            Ok(None) => return Ok(None),
-            Err(err) => {
-                return Err(internal_error(err));
-            }
-        };
-
-        let current_time = current_time_micros();
-        if session.expires_at <= current_time {
-            warn!("Session {session_id} has expired");
-            if let Err(err) = Session::delete_by_id(&state.db, session_id).await
-            {
-                warn!("Failed to delete expired session: {err}");
-            }
+        if is_session_expired(&session, session_id, &state.db).await {
             return Ok(None);
         }
 
-        let user = match Self::get_by_id(&state.db, session.user_id).await {
-            Ok(user) => user,
-            Err(Error::RowNotFound) => return Ok(None),
-            Err(err) => {
-                return Err(internal_error(err));
-            }
-        };
+        load_user(&state.db, session.user_id).await
+    }
+}
 
-        Ok(Some(user))
+async fn extract_session_id(
+    parts: &mut Parts,
+    state: &AppState,
+) -> Result<Option<Uuid>, (StatusCode, String)> {
+    let Ok(jar) = CookieJar::from_request_parts(parts, state).await;
+
+    let Some(raw) = jar.get("session_id").map(Cookie::value) else {
+        info!("No session found");
+        return Ok(None);
+    };
+
+    let Ok(session_id) = Uuid::parse_str(raw) else {
+        warn!("Failed to parse session_id");
+        return Ok(None);
+    };
+
+    info!("Extracting session {session_id}");
+    Ok(Some(session_id))
+}
+
+async fn load_session(
+    db: &sqlx::SqlitePool,
+    session_id: Uuid,
+) -> Result<Option<Session>, (StatusCode, String)> {
+    match Session::get_by_id(db, session_id).await {
+        Ok(session) => Ok(session),
+        Err(err) => Err(internal_error(err)),
+    }
+}
+
+async fn is_session_expired(
+    session: &Session,
+    session_id: Uuid,
+    db: &sqlx::SqlitePool,
+) -> bool {
+    let current_time = current_time_micros();
+    if session.expires_at <= current_time {
+        warn!("Session {session_id} has expired");
+        if let Err(err) = Session::delete_by_id(db, session_id).await {
+            warn!("Failed to delete expired session: {err}");
+        }
+        return true;
+    }
+    false
+}
+
+async fn load_user(
+    db: &sqlx::SqlitePool,
+    user_id: Uuid,
+) -> Result<Option<User>, (StatusCode, String)> {
+    match User::get_by_id(db, user_id).await {
+        Ok(user) => Ok(Some(user)),
+        Err(Error::RowNotFound) => Ok(None),
+        Err(err) => Err(internal_error(err)),
     }
 }

@@ -1,5 +1,6 @@
 use askama::Template;
 use axum::response::IntoResponse;
+use tracing::info;
 
 use crate::models::user::User;
 
@@ -12,6 +13,7 @@ struct Home {
 }
 
 pub async fn home(user_opt: Option<User>) -> impl IntoResponse {
+    info!("Handling home request");
     let template = Home {
         username: user_opt.map(|user| user.username).unwrap_or_default(),
     };

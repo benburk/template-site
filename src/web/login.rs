@@ -80,12 +80,12 @@ pub async fn delete(
     jar: CookieJar,
     state: State<AppState>,
 ) -> impl IntoResponse {
-    if let Some(session_cookie) = jar.get("session_id") {
-        if let Ok(session_id) = Uuid::parse_str(session_cookie.value()) {
-            match Session::delete_by_id(&state.db, session_id).await {
-                Ok(_) => {}
-                Err(err) => return internal_error(err).into_response(),
-            }
+    if let Some(session_cookie) = jar.get("session_id")
+        && let Ok(session_id) = Uuid::parse_str(session_cookie.value())
+    {
+        match Session::delete_by_id(&state.db, session_id).await {
+            Ok(_) => {}
+            Err(err) => return internal_error(err).into_response(),
         }
     }
     (

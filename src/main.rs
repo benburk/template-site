@@ -1,10 +1,12 @@
 use std::net::SocketAddr;
 
 use axum::Router;
+use axum::body::Body;
+use axum::http::Request;
 use db::connect_to_database;
 use tokio::net::TcpListener;
-use tower_http::LatencyUnit;
-use tower_http::trace::{self, TraceLayer};
+use tower_http::trace::TraceLayer;
+use tracing::{field, instrument::WithSubscriber};
 
 mod api;
 mod app_state;
@@ -19,6 +21,7 @@ mod web;
 use app_state::AppState;
 use tracing::{Level, info, subscriber};
 use tracing_appender::rolling::{RollingFileAppender, Rotation};
+use tracing_subscriber::EnvFilter;
 
 fn configure_logging() {
     let file_appender =
@@ -27,6 +30,16 @@ fn configure_logging() {
     let subscriber = tracing_subscriber::fmt()
         .with_writer(file_appender)
         .with_ansi(false)
+        .with_file(true)
+        .with_line_number(true)
+        .json()
+        .with_env_filter(
+            EnvFilter::try_from_default_env()
+                .or_else(|_| {
+                    EnvFilter::try_new("basic_site=debug,tower_http=error")
+                })
+                .unwrap(),
+        )
         .finish();
 
     subscriber::set_global_default(subscriber)
@@ -44,17 +57,19 @@ async fn main() {
     let app = Router::new()
         .merge(web::router())
         .nest("/api/v1", api::router())
-        .layer(
-            TraceLayer::new_for_http()
-                .make_span_with(
-                    trace::DefaultMakeSpan::new().level(Level::INFO),
+        .layer(TraceLayer::new_for_http().make_span_with(
+            |request: &Request<Body>| {
+                let request_id = uuid::Uuid::new_v4();
+                tracing::span!(
+                    Level::DEBUG,
+                    "request",
+                    method = field::display(request.method()),
+                    uri = field::display(request.uri()),
+                    version = field::debug(request.version()),
+                    request_id = field::display(request_id)
                 )
-                .on_response(
-                    trace::DefaultOnResponse::new()
-                        .level(Level::INFO)
-                        .latency_unit(LatencyUnit::Micros),
-                ),
-        )
+            },
+        ))
         .with_state(state);
 
     let addr = SocketAddr::from(([0, 0, 0, 0], 3000));
