@@ -1,5 +1,10 @@
 //! Web routes.
-use axum::{Router, http::header, response::IntoResponse, routing::get};
+use axum::{
+    Router,
+    http::header,
+    response::IntoResponse,
+    routing::{get, post},
+};
 
 use crate::app_state::AppState;
 
@@ -8,6 +13,7 @@ mod home;
 mod html_template;
 mod login;
 mod profile;
+mod settings;
 mod signup;
 
 use about::about;
@@ -40,4 +46,7 @@ pub fn router() -> Router<AppState> {
             get(login::get).post(login::post).delete(login::delete),
         )
         .route("/signup", get(signup::get).post(signup::post))
+        .route("/settings", get(settings::get))
+        .route("/settings/username", post(settings::update_username))
+        .route("/settings/password", post(settings::update_password))
 }
