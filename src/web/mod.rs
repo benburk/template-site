@@ -7,10 +7,12 @@ mod about;
 mod home;
 mod html_template;
 mod login;
+mod profile;
 mod signup;
 
 use about::about;
 use home::home;
+use profile::profile;
 
 async fn get_pico_css() -> impl IntoResponse {
     (
@@ -32,6 +34,7 @@ pub fn router() -> Router<AppState> {
         .route("/htmx.min.js", get(get_htmx))
         .route("/", get(home))
         .route("/about", get(about))
+        .route("/users/{username}", get(profile))
         .route(
             "/login",
             get(login::get).post(login::post).delete(login::delete),
