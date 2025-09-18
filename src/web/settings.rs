@@ -24,6 +24,7 @@ struct Settings {
 struct UsernameForm {
     new_username: String,
     username_message: String,
+    username_is_success: bool,
 }
 
 #[derive(Template, Default)]
@@ -31,6 +32,8 @@ struct UsernameForm {
 struct PasswordForm {
     current_password_message: String,
     new_password_message: String,
+    current_password_is_success: bool,
+    new_password_is_success: bool,
 }
 
 pub async fn get(user_opt: Option<User>) -> impl IntoResponse {
@@ -70,6 +73,7 @@ pub async fn update_username(
         return HtmlTemplate(UsernameForm {
             new_username: form.new_username,
             username_message: username_error,
+            username_is_success: false,
         })
         .into_response();
     }
@@ -90,6 +94,7 @@ pub async fn update_username(
                 username_message: String::from(
                     "Username updated successfully!",
                 ),
+                username_is_success: true,
             }),
         )
             .into_response(),
@@ -97,6 +102,7 @@ pub async fn update_username(
             HtmlTemplate(UsernameForm {
                 new_username: form.new_username,
                 username_message: String::from("Username already taken"),
+                username_is_success: false,
             })
             .into_response()
         }
@@ -105,6 +111,7 @@ pub async fn update_username(
             HtmlTemplate(UsernameForm {
                 new_username: form.new_username,
                 username_message: String::from("Failed to update username"),
+                username_is_success: false,
             })
             .into_response()
         }
@@ -125,6 +132,8 @@ pub async fn update_password(
         return HtmlTemplate(PasswordForm {
             current_password_message: String::new(),
             new_password_message: password_error,
+            current_password_is_success: false,
+            new_password_is_success: false,
         })
         .into_response();
     }
@@ -138,6 +147,8 @@ pub async fn update_password(
                 "Current password is incorrect",
             ),
             new_password_message: String::new(),
+            current_password_is_success: false,
+            new_password_is_success: false,
         })
         .into_response();
     }
@@ -158,6 +169,8 @@ pub async fn update_password(
             new_password_message: String::from(
                 "Password updated successfully!",
             ),
+            current_password_is_success: false,
+            new_password_is_success: true,
         })
         .into_response(),
         Err(err) => {
@@ -165,6 +178,8 @@ pub async fn update_password(
             HtmlTemplate(PasswordForm {
                 current_password_message: String::new(),
                 new_password_message: String::from("Failed to update password"),
+                current_password_is_success: false,
+                new_password_is_success: false,
             })
             .into_response()
         }
