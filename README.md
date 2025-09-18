@@ -18,12 +18,16 @@ A simple website to use as a starting point for saas projects.
 
 - [x] Log in, log out, sign up
 - [x] Password hashing with Argon2id
-- Session management
-- Change username / password
+- [ ] Session management
+- [ ] Change username / password
 
-## Setup
+## Run instructions
+
+1. run `nix develop`
+2. create `.env`
 
 ```
-cargo install sqlx-cli --no-default-features --features sqlite
-cargo install --locked bacon
+DATABASE_URL="sqlite://database.sqlite3"
 ```
+
+3. Run `just db-init`
