@@ -4,7 +4,7 @@
         <input type="text" id="new_username" name="new_username" placeholder="Enter new username" value="{{new_username}}" required minlength="5" maxlength="20">
         {% else %}
         <input type="text" id="new_username" name="new_username" placeholder="Enter new username" value="{{new_username}}" required minlength="5" maxlength="20" aria-invalid="{% if username_is_success %}false{% else %}true{% endif %}">
-        <small {% if username_is_success %}class="pico-color-green-200"{% endif %}>{{username_message}}</small>
+        <small>{{username_message}}</small>
         {% endif %}
     </label>
     <button type="submit">Update Username</button>
