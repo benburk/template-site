@@ -1,7 +1,5 @@
 {% extends "base.html" %}
 
-{% block title %}Settings{% endblock %}
-
 {% block content %}
 <h1>Settings</h1>
 
@@ -12,7 +10,6 @@
 {% endif %}
 
 <section>
-    <h2>Change Username</h2>
     <form method="post" action="/settings/username">
         <label for="new_username">New Username</label>
         <input type="text" id="new_username" name="new_username" placeholder="Enter new username" required minlength="5" maxlength="20">
@@ -21,7 +18,6 @@
 </section>
 
 <section>
-    <h2>Change Password</h2>
     <form method="post" action="/settings/password">
         <label for="current_password">Current Password</label>
         <input type="password" id="current_password" name="current_password" placeholder="Enter current password" required>
