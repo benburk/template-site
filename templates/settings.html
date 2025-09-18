@@ -3,29 +3,11 @@
 {% block content %}
 <h1>Settings</h1>
 
-{% if message.len() > 0 %}
-<div role="alert" {% if message.contains("successfully") %}data-theme="valid"{% else %}data-theme="invalid"{% endif %}>
-    {{ message }}
-</div>
-{% endif %}
-
 <section>
-    <form method="post" action="/settings/username">
-        <label for="new_username">New Username</label>
-        <input type="text" id="new_username" name="new_username" placeholder="Enter new username" required minlength="5" maxlength="20">
-        <button type="submit">Update Username</button>
-    </form>
+    {{ username_form|safe }}
 </section>
 
 <section>
-    <form method="post" action="/settings/password">
-        <label for="current_password">Current Password</label>
-        <input type="password" id="current_password" name="current_password" placeholder="Enter current password" required>
-        
-        <label for="new_password">New Password</label>
-        <input type="password" id="new_password" name="new_password" placeholder="Enter new password" required minlength="8" maxlength="60">
-        
-        <button type="submit">Update Password</button>
-    </form>
+    {{ password_form|safe }}
 </section>
 {% endblock %}

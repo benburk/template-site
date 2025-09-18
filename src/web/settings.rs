@@ -15,14 +15,30 @@ use super::html_template::HtmlTemplate;
 #[template(path = "settings.html")]
 struct Settings {
     username: String,
-    message: String,
+    username_form: UsernameForm,
+    password_form: PasswordForm,
+}
+
+#[derive(Template, Default)]
+#[template(path = "settings_username_form.html")]
+struct UsernameForm {
+    new_username: String,
+    username_message: String,
+}
+
+#[derive(Template, Default)]
+#[template(path = "settings_password_form.html")]
+struct PasswordForm {
+    current_password_message: String,
+    new_password_message: String,
 }
 
 pub async fn get(user_opt: Option<User>) -> impl IntoResponse {
     match user_opt {
         Some(user) => HtmlTemplate(Settings {
             username: user.username,
-            message: String::new(),
+            username_form: UsernameForm::default(),
+            password_form: PasswordForm::default(),
         })
         .into_response(),
         None => Redirect::to("/login").into_response(),
@@ -51,9 +67,9 @@ pub async fn update_username(
 
     let username_error = password::validate_username(&form.new_username);
     if !username_error.is_empty() {
-        return HtmlTemplate(Settings {
-            username: user.username,
-            message: username_error,
+        return HtmlTemplate(UsernameForm {
+            new_username: form.new_username,
+            username_message: username_error,
         })
         .into_response();
     }
@@ -67,23 +83,28 @@ pub async fn update_username(
     .await;
 
     match query_result {
-        Ok(_) => HtmlTemplate(Settings {
-            username: form.new_username,
-            message: String::from("Username updated successfully!"),
-        })
-        .into_response(),
+        Ok(_) => (
+            [("HX-Trigger", "username-updated")],
+            HtmlTemplate(UsernameForm {
+                new_username: form.new_username.clone(),
+                username_message: String::from(
+                    "Username updated successfully!",
+                ),
+            }),
+        )
+            .into_response(),
         Err(sqlx::Error::Database(err)) if err.is_unique_violation() => {
-            HtmlTemplate(Settings {
-                username: user.username,
-                message: String::from("Username already taken"),
+            HtmlTemplate(UsernameForm {
+                new_username: form.new_username,
+                username_message: String::from("Username already taken"),
             })
             .into_response()
         }
         Err(err) => {
             error!("Failed to update username: {}", err);
-            HtmlTemplate(Settings {
-                username: user.username,
-                message: String::from("Failed to update username"),
+            HtmlTemplate(UsernameForm {
+                new_username: form.new_username,
+                username_message: String::from("Failed to update username"),
             })
             .into_response()
         }
@@ -101,9 +122,9 @@ pub async fn update_password(
 
     let password_error = password::validate_password(&form.new_password);
     if !password_error.is_empty() {
-        return HtmlTemplate(Settings {
-            username: user.username,
-            message: password_error,
+        return HtmlTemplate(PasswordForm {
+            current_password_message: String::new(),
+            new_password_message: password_error,
         })
         .into_response();
     }
@@ -112,9 +133,11 @@ pub async fn update_password(
         User::check_login(&state.db, &user.username, &form.current_password)
             .await;
     if valid_login.is_none() {
-        return HtmlTemplate(Settings {
-            username: user.username,
-            message: String::from("Current password is incorrect"),
+        return HtmlTemplate(PasswordForm {
+            current_password_message: String::from(
+                "Current password is incorrect",
+            ),
+            new_password_message: String::new(),
         })
         .into_response();
     }
@@ -130,16 +153,18 @@ pub async fn update_password(
     .await;
 
     match query_result {
-        Ok(_) => HtmlTemplate(Settings {
-            username: user.username,
-            message: String::from("Password updated successfully!"),
+        Ok(_) => HtmlTemplate(PasswordForm {
+            current_password_message: String::new(),
+            new_password_message: String::from(
+                "Password updated successfully!",
+            ),
         })
         .into_response(),
         Err(err) => {
             error!("Failed to update password: {}", err);
-            HtmlTemplate(Settings {
-                username: user.username,
-                message: String::from("Failed to update password"),
+            HtmlTemplate(PasswordForm {
+                current_password_message: String::new(),
+                new_password_message: String::from("Failed to update password"),
             })
             .into_response()
         }

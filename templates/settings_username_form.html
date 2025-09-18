@@ -1,0 +1,11 @@
+<form hx-post="/settings/username" hx-swap="outerHTML" method="post" action="/settings/username">
+    <label for="new_username">New Username
+        {% if username_message.len() == 0 %}
+        <input type="text" id="new_username" name="new_username" placeholder="Enter new username" value="{{new_username}}" required minlength="5" maxlength="20">
+        {% else %}
+        <input type="text" id="new_username" name="new_username" placeholder="Enter new username" value="{{new_username}}" required minlength="5" maxlength="20" aria-invalid="true">
+        <small>{{username_message}}</small>
+        {% endif %}
+    </label>
+    <button type="submit">Update Username</button>
+</form>
