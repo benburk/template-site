@@ -21,4 +21,5 @@ db-init:
     sqlx database drop
     sqlx database create
     sqlx migrate run
+    sqlite3 $DATABASE_PATH < seeds/seed.sql
 

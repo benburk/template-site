@@ -1,3 +1,6 @@
+PRAGMA foreign_keys = ON;
+PRAGMA strict = ON;
+
 CREATE TABLE IF NOT EXISTS user(
     id              BLOB NOT NULL PRIMARY KEY,
     username        TEXT NOT NULL UNIQUE,
