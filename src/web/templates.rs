@@ -52,8 +52,18 @@ pub fn home(username: &str) -> Markup {
     base(
         username,
         &html! {
-            h1 { "Hello World" }
-            p { "Welcome to this simple Askama template with Pico CSS!" }
+            h1 { "Basic Site" }
+            p { "A simple web application built with modern Rust tooling." }
+            h2 { "Tech Stack" }
+            ul {
+                li { "Rust" }
+                li { a href="https://github.com/tokio-rs/axum" { "Axum" } " for web server" }
+                li { a href="https://github.com/launchbadge/sqlx" { "sqlx" } " for database connection" }
+                li { "Maud for html components" }
+                li { a href="https://htmx.org" { "HTMX" } " for reactivity" }
+                li { a href="https://picocss.com/docs/" { "PicoCSS" } " for styling" }
+                li { "sqlite for database" }
+            }
         },
     )
 }

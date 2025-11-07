@@ -22,7 +22,6 @@ The app is a single process, not dependent on any external resources.
 - [x] Change username / password
 - [x] Request tracing in logs
 - [ ] Session management
-- [ ] Docker deployment
 
 ## Build and run instructions
 
