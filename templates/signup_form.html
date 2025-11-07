@@ -1,24 +1,27 @@
-<form hx-post="/signup" hx-swap="outerHTML" method="post">
-    <h1>Sign up</h1>
-    <fieldset>
-        <label>Username
-            {% if username_message.len() == 0 %}
-            <input name="username" type="text" placeholder="Username" value="{{username}}" required />
-            {% else %}
-            <input name="username" type="text" placeholder="Username" value="{{username}}" required
-                aria-invalid="true" />
-            <small>{{username_message}}</small>
-            {% endif %}
-        </label>
+<article>
+    <form hx-post="/signup" hx-swap="outerHTML" method="post">
+        <h1>Sign up</h1>
+        <fieldset>
+            <label>Username
+                {% if username_message.len() == 0 %}
+                <input name="username" type="text" placeholder="Username" value="{{username}}" required />
+                {% else %}
+                <input name="username" type="text" placeholder="Username" value="{{username}}" required
+                    aria-invalid="true" />
+                <small>{{username_message}}</small>
+                {% endif %}
+            </label>
 
-        <label>Password
-            {% if password_message.len() == 0 %}
-            <input name="password" type="password" placeholder="Password" required />
-            {% else %}
-            <input name="password" type="password" placeholder="Password" required aria-invalid="true" />
-            <small>{{password_message}}</small>
-            {% endif %}
-        </label>
-    </fieldset>
-    <button type="submit">Sign up</button>
-</form>
+            <label>Password
+                {% if password_message.len() == 0 %}
+                <input name="password" type="password" placeholder="Password" required />
+                {% else %}
+                <input name="password" type="password" placeholder="Password" required aria-invalid="true" />
+                <small>{{password_message}}</small>
+                {% endif %}
+            </label>
+        </fieldset>
+        <button type="submit">Sign up</button>
+        <p>Already have an account? <a href="/login">Log in</a></p>
+    </form>
+</article>

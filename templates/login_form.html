@@ -1,16 +1,19 @@
-<form hx-post="/session" hx-swap="outerHTML" method="post">
-    <h1>Login</h1>
-    <fieldset>
-        {% if error_message.len() == 0 %}
-        <label>Username <input name="username" type="text" placeholder="Username" required /></label>
-        <label>Password <input name="password" type="password" placeholder="Password" required /></label>
-        {% else %}
-        <label>Username <input name="username" type="text" placeholder="Username" required aria-invalid="true"
-                value="{{ username }}"/></label>
-        <label>Password <input name="password" type="password" placeholder="Password" aria-invalid="true" required />
-            <small>{{error_message}}</small>
-        </label>
-        {% endif %}
-    </fieldset>
-    <button type="submit">Log in</button>
-</form>
+<article>
+    <form hx-post="/session" hx-swap="outerHTML" method="post">
+        <h1>Login</h1>
+        <fieldset>
+            {% if error_message.len() == 0 %}
+            <label>Username <input name="username" type="text" placeholder="Username" required /></label>
+            <label>Password <input name="password" type="password" placeholder="Password" required /></label>
+            {% else %}
+            <label>Username <input name="username" type="text" placeholder="Username" required aria-invalid="true"
+                    value="{{ username }}"/></label>
+            <label>Password <input name="password" type="password" placeholder="Password" aria-invalid="true" required />
+                <small>{{error_message}}</small>
+            </label>
+            {% endif %}
+        </fieldset>
+        <button type="submit">Log in</button>
+        <p>Don't have an account? <a href="/signup">Sign up</a></p>
+    </form>
+</article>
