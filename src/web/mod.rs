@@ -10,12 +10,12 @@ use crate::app_state::AppState;
 
 mod about;
 mod home;
-mod html_template;
 mod login;
 mod profile;
 mod session;
 mod settings;
 mod signup;
+mod templates;
 
 use about::about;
 use home::home;

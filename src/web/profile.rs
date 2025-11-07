@@ -1,6 +1,5 @@
 use std::time::{Duration, SystemTime};
 
-use askama::Template;
 use axum::{
     extract::{Path, State},
     response::{IntoResponse, Redirect},
@@ -9,24 +8,7 @@ use axum::{
 use crate::app_state::AppState;
 use crate::models::{session::Session, user::User};
 
-use super::html_template::HtmlTemplate;
-
-#[derive(Template)]
-#[template(path = "profile.html")]
-struct Profile {
-    username: String,
-    sessions: Vec<SessionDisplay>,
-}
-
-#[derive(Debug)]
-struct SessionDisplay {
-    id: String,
-    ip_address: String,
-    user_agent: String,
-    created_at: String,
-    expires_at: String,
-    is_current: bool,
-}
+use super::templates::{self, SessionDisplay};
 
 pub async fn profile(
     Path(username): Path<String>,
@@ -51,17 +33,13 @@ pub async fn profile(
                 user_agent: truncate_user_agent(&session.user_agent),
                 created_at: format_timestamp(session.created_at),
                 expires_at: format_timestamp(session.expires_at),
-                is_current: false, // TODO: detect current session
+                is_current: false,
             })
             .collect(),
         Err(_) => Vec::new(),
     };
 
-    let template = Profile {
-        username: user.username,
-        sessions,
-    };
-    HtmlTemplate(template).into_response()
+    templates::profile(&user.username, &sessions).into_response()
 }
 
 fn truncate_user_agent(user_agent: &str) -> String {

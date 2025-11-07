@@ -1,27 +1,16 @@
-use askama::Template;
 use axum::response::{IntoResponse, Redirect};
 
 use crate::models::user::User;
 
-use super::html_template::HtmlTemplate;
-
-#[derive(Template, Default)]
-#[template(path = "login.html")]
-pub struct Login {
-    username: String,
-    form: LoginForm,
-}
-
-#[derive(Template, Default)]
-#[template(path = "login_form.html")]
-pub struct LoginForm {
-    pub username: String,
-    pub error_message: String,
-}
+use super::templates;
 
 pub async fn get(user: Option<User>) -> impl IntoResponse {
     let Some(_) = user else {
-        return HtmlTemplate(Login::default()).into_response();
+        return templates::login_page().into_response();
     };
     Redirect::to("/").into_response()
+}
+
+pub fn login_form(username: &str, error_message: &str) -> impl IntoResponse {
+    templates::login_form(username, error_message)
 }

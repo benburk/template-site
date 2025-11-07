@@ -1,4 +1,3 @@
-use askama::Template;
 use axum::Form;
 use axum::extract::State;
 use axum::response::{IntoResponse, Redirect};
@@ -9,41 +8,11 @@ use crate::app_state::AppState;
 use crate::models::user::User;
 use crate::password;
 
-use super::html_template::HtmlTemplate;
-
-#[derive(Template)]
-#[template(path = "settings.html")]
-struct Settings {
-    username: String,
-    username_form: UsernameForm,
-    password_form: PasswordForm,
-}
-
-#[derive(Template, Default)]
-#[template(path = "settings_username_form.html")]
-struct UsernameForm {
-    new_username: String,
-    username_message: String,
-    username_is_success: bool,
-}
-
-#[derive(Template, Default)]
-#[template(path = "settings_password_form.html")]
-struct PasswordForm {
-    current_password_message: String,
-    new_password_message: String,
-    current_password_is_success: bool,
-    new_password_is_success: bool,
-}
+use super::templates;
 
 pub async fn get(user_opt: Option<User>) -> impl IntoResponse {
     match user_opt {
-        Some(user) => HtmlTemplate(Settings {
-            username: user.username,
-            username_form: UsernameForm::default(),
-            password_form: PasswordForm::default(),
-        })
-        .into_response(),
+        Some(user) => templates::settings(&user.username).into_response(),
         None => Redirect::to("/login").into_response(),
     }
 }
@@ -70,11 +39,11 @@ pub async fn update_username(
 
     let username_error = password::validate_username(&form.new_username);
     if !username_error.is_empty() {
-        return HtmlTemplate(UsernameForm {
-            new_username: form.new_username,
-            username_message: username_error,
-            username_is_success: false,
-        })
+        return templates::username_form(
+            &form.new_username,
+            &username_error,
+            false,
+        )
         .into_response();
     }
 
@@ -89,30 +58,28 @@ pub async fn update_username(
     match query_result {
         Ok(_) => (
             [("HX-Trigger", "username-updated")],
-            HtmlTemplate(UsernameForm {
-                new_username: form.new_username.clone(),
-                username_message: String::from(
-                    "Username updated successfully!",
-                ),
-                username_is_success: true,
-            }),
+            templates::username_form(
+                &form.new_username,
+                "Username updated successfully!",
+                true,
+            ),
         )
             .into_response(),
         Err(sqlx::Error::Database(err)) if err.is_unique_violation() => {
-            HtmlTemplate(UsernameForm {
-                new_username: form.new_username,
-                username_message: String::from("Username already taken"),
-                username_is_success: false,
-            })
+            templates::username_form(
+                &form.new_username,
+                "Username already taken",
+                false,
+            )
             .into_response()
         }
         Err(err) => {
             error!("Failed to update username: {}", err);
-            HtmlTemplate(UsernameForm {
-                new_username: form.new_username,
-                username_message: String::from("Failed to update username"),
-                username_is_success: false,
-            })
+            templates::username_form(
+                &form.new_username,
+                "Failed to update username",
+                false,
+            )
             .into_response()
         }
     }
@@ -129,27 +96,20 @@ pub async fn update_password(
 
     let password_error = password::validate_password(&form.new_password);
     if !password_error.is_empty() {
-        return HtmlTemplate(PasswordForm {
-            current_password_message: String::new(),
-            new_password_message: password_error,
-            current_password_is_success: false,
-            new_password_is_success: false,
-        })
-        .into_response();
+        return templates::password_form("", &password_error, false, false)
+            .into_response();
     }
 
     let valid_login =
         User::check_login(&state.db, &user.username, &form.current_password)
             .await;
     if valid_login.is_none() {
-        return HtmlTemplate(PasswordForm {
-            current_password_message: String::from(
-                "Current password is incorrect",
-            ),
-            new_password_message: String::new(),
-            current_password_is_success: false,
-            new_password_is_success: false,
-        })
+        return templates::password_form(
+            "Current password is incorrect",
+            "",
+            false,
+            false,
+        )
         .into_response();
     }
 
@@ -164,23 +124,21 @@ pub async fn update_password(
     .await;
 
     match query_result {
-        Ok(_) => HtmlTemplate(PasswordForm {
-            current_password_message: String::new(),
-            new_password_message: String::from(
-                "Password updated successfully!",
-            ),
-            current_password_is_success: false,
-            new_password_is_success: true,
-        })
+        Ok(_) => templates::password_form(
+            "",
+            "Password updated successfully!",
+            false,
+            true,
+        )
         .into_response(),
         Err(err) => {
             error!("Failed to update password: {}", err);
-            HtmlTemplate(PasswordForm {
-                current_password_message: String::new(),
-                new_password_message: String::from("Failed to update password"),
-                current_password_is_success: false,
-                new_password_is_success: false,
-            })
+            templates::password_form(
+                "",
+                "Failed to update password",
+                false,
+                false,
+            )
             .into_response()
         }
     }

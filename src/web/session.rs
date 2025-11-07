@@ -16,8 +16,7 @@ use crate::error::internal_error;
 use crate::models::{session::Session, user::User};
 use crate::util::current_time_micros;
 
-use super::html_template::HtmlTemplate;
-use super::login::LoginForm;
+use super::login;
 
 fn build_session_cookie(session_id: Uuid) -> Cookie<'static> {
     // This is a workaround so when we're testing locally
@@ -84,11 +83,10 @@ pub async fn post(
             .await;
             ([("HX-Redirect", "/")], jar.add(cookie)).into_response()
         }
-        None => HtmlTemplate(LoginForm {
-            username: form.username,
-            error_message: String::from("Invalid username or password"),
-        })
-        .into_response(),
+        None => {
+            login::login_form(&form.username, "Invalid username or password")
+                .into_response()
+        }
     }
 }
 

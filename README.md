@@ -9,7 +9,7 @@ The app is a single process, not dependent on any external resources.
 - Rust
 - [Axum](https://github.com/tokio-rs/axum) for web server
 - [sqlx](https://github.com/launchbadge/sqlx) for database connection
-- [Askama](https://askama.readthedocs.io/en/stable/) for templating
+- Maud for html components
 - [HTMX](https://htmx.org) for reactivity
 - [PicoCSS](https://picocss.com/docs/) for styling
 - sqlite for database
