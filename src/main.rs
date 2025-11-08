@@ -19,19 +19,11 @@ mod util;
 mod web;
 
 use app_state::AppState;
-use tracing::{Level, info, subscriber};
-use tracing_appender::rolling::{RollingFileAppender, Rotation};
+use tracing::{Level, info};
 use tracing_subscriber::EnvFilter;
 
 fn configure_logging() {
-    let file_appender =
-        RollingFileAppender::new(Rotation::DAILY, "logs", "basic-site.log");
-
-    let subscriber = tracing_subscriber::fmt()
-        .with_writer(file_appender)
-        .with_ansi(false)
-        .with_file(true)
-        .with_line_number(true)
+    tracing_subscriber::fmt()
         .with_env_filter(
             EnvFilter::try_from_default_env()
                 .or_else(|_| {
@@ -41,10 +33,7 @@ fn configure_logging() {
                 })
                 .unwrap(),
         )
-        .finish();
-
-    subscriber::set_global_default(subscriber)
-        .expect("Multiple global default subscribers set");
+        .init();
 }
 
 #[tokio::main]
