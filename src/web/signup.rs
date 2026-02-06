@@ -1,7 +1,6 @@
 use axum::extract::{ConnectInfo, State};
 use axum::{
     Form,
-    http::StatusCode,
     response::{IntoResponse, Redirect},
 };
 use axum_extra::TypedHeader;
@@ -9,10 +8,10 @@ use axum_extra::extract::CookieJar;
 use axum_extra::headers::UserAgent;
 use serde::Deserialize;
 use std::net::SocketAddr;
-use tracing::warn;
 use uuid::Uuid;
 
 use crate::app_state::AppState;
+use crate::error::internal_error;
 use crate::models::user::User;
 use crate::password;
 use crate::util::current_time_micros;
@@ -69,10 +68,7 @@ pub async fn post(
             )
             .into_response();
         }
-        Err(err) => {
-            warn!("{err}");
-            return StatusCode::INTERNAL_SERVER_ERROR.into_response();
-        }
+        Err(err) => return internal_error(err).into_response(),
     }
 
     match super::session::create_session(
@@ -85,10 +81,7 @@ pub async fn post(
     .await
     {
         Ok(cookie) => ([("HX-Redirect", "/")], jar.add(cookie)).into_response(),
-        Err(err) => {
-            warn!("{err}");
-            StatusCode::INTERNAL_SERVER_ERROR.into_response()
-        }
+        Err(err) => internal_error(err).into_response(),
     }
 }
 
