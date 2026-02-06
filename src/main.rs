@@ -3,27 +3,19 @@ use std::net::SocketAddr;
 use axum::Router;
 use axum::body::Body;
 use axum::http::Request;
-use db::connect_to_database;
+use basic_site::app_state::AppState;
+use basic_site::db::connect_to_database;
+use basic_site::services;
+use basic_site::web;
 use tokio::net::TcpListener;
 use tokio::sync::mpsc;
 use tower_http::trace::{DefaultOnRequest, DefaultOnResponse, TraceLayer};
 use tracing::Level;
 use tracing::field;
-
-mod api;
-mod app_state;
-mod db;
-mod error;
-mod extractors;
-mod models;
-mod password;
-mod services;
-mod util;
-mod web;
-
-use app_state::AppState;
 use tracing::info;
 use tracing_subscriber::EnvFilter;
+
+mod api;
 
 fn configure_logging() {
     tracing_subscriber::fmt()

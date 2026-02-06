@@ -1,7 +1,7 @@
 use axum::Json;
 use serde::Serialize;
 
-use crate::util::current_time_micros;
+use basic_site::util::current_time_micros;
 
 #[derive(Serialize)]
 pub struct TimeResponse {

@@ -1,7 +1,7 @@
 //! API routes.
 use axum::{Router, routing::get};
 
-use crate::app_state::AppState;
+use basic_site::app_state::AppState;
 
 mod server_time;
 
