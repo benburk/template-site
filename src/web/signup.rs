@@ -75,16 +75,21 @@ pub async fn post(
         }
     }
 
-    let cookie = super::session::create_session(
+    match super::session::create_session(
         &state.db,
         user.id,
         created_at,
         addr.to_string(),
         user_agent,
     )
-    .await;
-
-    ([("HX-Redirect", "/")], jar.add(cookie)).into_response()
+    .await
+    {
+        Ok(cookie) => ([("HX-Redirect", "/")], jar.add(cookie)).into_response(),
+        Err(err) => {
+            warn!("{err}");
+            StatusCode::INTERNAL_SERVER_ERROR.into_response()
+        }
+    }
 }
 
 fn validate_inputs(form: &FormPayload) -> Result<(), (String, String)> {

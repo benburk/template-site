@@ -40,8 +40,9 @@ pub async fn create_session<'e, E: SqliteExecutor<'e>>(
     time: i64,
     ip_address: String,
     user_agent: UserAgent,
-) -> Cookie<'static> {
+) -> Result<Cookie<'static>, sqlx::Error> {
     let id = uuid::Uuid::new_v4();
+    // This constant conversion always succeeds (1 week in microseconds fits in i64)
     let expire_micros =
         i64::try_from(time::Duration::WEEK.whole_microseconds()).unwrap();
     let session = Session {
@@ -52,8 +53,8 @@ pub async fn create_session<'e, E: SqliteExecutor<'e>>(
         created_at: time,
         expires_at: time.wrapping_add(expire_micros),
     };
-    Session::insert(db, &session).await.unwrap();
-    build_session_cookie(id)
+    Session::insert(db, &session).await?;
+    Ok(build_session_cookie(id))
 }
 
 #[derive(Deserialize, Debug)]
@@ -71,22 +72,27 @@ pub async fn post(
     Form(form): Form<CreateSessionPayload>,
 ) -> impl IntoResponse {
     let created_at = current_time_micros();
-    match User::check_login(&state.db, &form.username, &form.password).await {
-        Some(user) => {
-            let cookie = create_session(
-                &state.db,
-                user.id,
-                created_at,
-                addr.to_string(),
-                user_agent,
-            )
-            .await;
-            ([("HX-Redirect", "/")], jar.add(cookie)).into_response()
-        }
-        None => {
-            login::login_form(&form.username, "Invalid username or password")
-                .into_response()
-        }
+    let Some(user) =
+        User::check_login(&state.db, &form.username, &form.password).await
+    else {
+        return login::login_form(
+            &form.username,
+            "Invalid username or password",
+        )
+        .into_response();
+    };
+
+    match create_session(
+        &state.db,
+        user.id,
+        created_at,
+        addr.to_string(),
+        user_agent,
+    )
+    .await
+    {
+        Ok(cookie) => ([("HX-Redirect", "/")], jar.add(cookie)).into_response(),
+        Err(err) => internal_error(err).into_response(),
     }
 }
 
