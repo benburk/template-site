@@ -8,33 +8,33 @@ use maud::{Markup, html};
 pub fn login_form(username: &str, error_message: &str) -> Markup {
     html! {
         article hx-target="this" hx-swap="outerHTML" {
+            header { h1 { "Login" } }
             form hx-post="/session" method="post" {
-                h1 { "Login" }
                 fieldset {
                     @if error_message.is_empty() {
                         label {
                             "Username "
-                            input name="username" type="text" placeholder="Username" required;
+                            input name="username" type="text" placeholder="Username" required autofocus autocomplete="username";
                         }
                         label {
                             "Password "
-                            input name="password" type="password" placeholder="Password" required;
+                            input name="password" type="password" placeholder="Password" required autocomplete="current-password";
                         }
                     } @else {
                         label {
                             "Username "
-                            input name="username" type="text" placeholder="Username" required aria-invalid="true" value=(username);
+                            input name="username" type="text" placeholder="Username" required autofocus autocomplete="username" aria-invalid="true" value=(username);
                         }
                         label {
                             "Password "
-                            input name="password" type="password" placeholder="Password" aria-invalid="true" required;
+                            input name="password" type="password" placeholder="Password" aria-invalid="true" required autocomplete="current-password";
                             small { (error_message) }
                         }
                     }
                 }
                 button type="submit" { "Log in" }
-                p { "Don't have an account? " a href="/signup" { "Sign up" } }
             }
+            footer { "Don't have an account? " a href="/signup" { "Sign up" } }
         }
     }
 }
@@ -46,31 +46,31 @@ pub fn signup_form(
 ) -> Markup {
     html! {
         article hx-target="this" hx-swap="outerHTML" {
+            header { h1 { "Sign up" } }
             form hx-post="/signup" method="post" {
-                h1 { "Sign up" }
                 fieldset {
                     label {
                         "Username"
                         @if username_message.is_empty() {
-                            input name="username" type="text" placeholder="Username" value=(username) required;
+                            input name="username" type="text" placeholder="Username" value=(username) required autofocus autocomplete="username";
                         } @else {
-                            input name="username" type="text" placeholder="Username" value=(username) required aria-invalid="true";
+                            input name="username" type="text" placeholder="Username" value=(username) required autofocus autocomplete="username" aria-invalid="true";
                             small { (username_message) }
                         }
                     }
                     label {
                         "Password"
                         @if password_message.is_empty() {
-                            input name="password" type="password" placeholder="Password" required;
+                            input name="password" type="password" placeholder="Password" required autocomplete="new-password";
                         } @else {
-                            input name="password" type="password" placeholder="Password" required aria-invalid="true";
+                            input name="password" type="password" placeholder="Password" required autocomplete="new-password" aria-invalid="true";
                             small { (password_message) }
                         }
                     }
                 }
                 button type="submit" { "Sign up" }
-                p { "Already have an account? " a href="/login" { "Log in" } }
             }
+            footer { "Already have an account? " a href="/login" { "Log in" } }
         }
     }
 }
