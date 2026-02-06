@@ -115,7 +115,7 @@ pub async fn delete_by_id(
     State(state): State<AppState>,
     user_opt: Option<User>,
 ) -> impl IntoResponse {
-    let Some(_user) = user_opt else {
+    let Some(user) = user_opt else {
         return StatusCode::UNAUTHORIZED.into_response();
     };
 
@@ -123,11 +123,19 @@ pub async fn delete_by_id(
         return StatusCode::BAD_REQUEST.into_response();
     };
 
-    // TODO: Verify the session belongs to the authenticated user
-    // For now, we rely on the fact that session IDs are UUIDs and hard to guess
+    // Verify the session belongs to the authenticated user
+    let session = match Session::get_by_id(&state.db, session_uuid).await {
+        Ok(Some(s)) => s,
+        Ok(None) => return StatusCode::NOT_FOUND.into_response(),
+        Err(_) => return StatusCode::INTERNAL_SERVER_ERROR.into_response(),
+    };
+
+    if session.user_id != user.id {
+        return StatusCode::FORBIDDEN.into_response();
+    }
 
     match Session::delete_by_id(&state.db, session_uuid).await {
-        Ok(_) => "".into_response(), // Return empty content to remove the row
+        Ok(_) => "".into_response(),
         Err(_) => StatusCode::INTERNAL_SERVER_ERROR.into_response(),
     }
 }

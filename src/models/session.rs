@@ -53,7 +53,6 @@ impl Session {
         .await
     }
 
-    /// Don't need to check if correct user because guessing is unlikely.
     pub async fn delete_by_id<'e, E: SqliteExecutor<'e>>(
         db: E,
         id: Uuid,
