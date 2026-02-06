@@ -48,25 +48,25 @@ async fn main() {
 
     let state = AppState { db, job_tx };
 
+    let trace_layer = TraceLayer::new_for_http()
+        .make_span_with(|request: &Request<Body>| {
+            let request_id = uuid::Uuid::new_v4();
+            tracing::info_span!(
+                "request",
+                %request_id,
+                method = %request.method(),
+                uri = %request.uri(),
+                session_id = field::Empty,
+                user_id = field::Empty,
+            )
+        })
+        .on_request(DefaultOnRequest::new().level(Level::DEBUG))
+        .on_response(DefaultOnResponse::new().level(Level::INFO));
+
     let app = Router::new()
-        .merge(web::router())
-        .nest("/api/v1", api::router())
-        .layer(
-            TraceLayer::new_for_http()
-                .make_span_with(|request: &Request<Body>| {
-                    let request_id = uuid::Uuid::new_v4();
-                    tracing::info_span!(
-                        "request",
-                        %request_id,
-                        method = %request.method(),
-                        uri = %request.uri(),
-                        session_id = field::Empty,
-                        user_id = field::Empty,
-                    )
-                })
-                .on_request(DefaultOnRequest::new().level(Level::INFO))
-                .on_response(DefaultOnResponse::new().level(Level::INFO)),
-        )
+        .merge(web::static_router())
+        .merge(web::router().layer(trace_layer.clone()))
+        .nest("/api/v1", api::router().layer(trace_layer))
         .with_state(state);
 
     let addr = SocketAddr::from(([0, 0, 0, 0], 3000));

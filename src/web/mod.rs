@@ -43,11 +43,17 @@ async fn get_htmx() -> impl IntoResponse {
     )
 }
 
-pub fn router() -> Router<AppState> {
+/// Static assets (CSS, JS) - no request logging
+pub fn static_router() -> Router<AppState> {
     Router::new()
         .route("/pico.min.css", get(get_pico_css))
         .route("/pico.colors.min.css", get(get_pico_colors))
         .route("/htmx.min.js", get(get_htmx))
+}
+
+/// Dynamic routes - with request logging
+pub fn router() -> Router<AppState> {
+    Router::new()
         .route("/", get(home))
         .route("/about", get(about))
         .route("/users/{username}", get(profile))

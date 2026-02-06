@@ -94,6 +94,7 @@ pub async fn post(
 pub async fn delete(
     jar: CookieJar,
     state: State<AppState>,
+    _user: Option<User>, // Triggers extractor to record session/user in span
 ) -> impl IntoResponse {
     if let Some(session_cookie) = jar.get("session_id")
         && let Ok(session_id) = Uuid::parse_str(session_cookie.value())
