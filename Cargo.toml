@@ -46,3 +46,12 @@ std_instead_of_alloc = "allow"
 std_instead_of_core = "allow"
 unwrap_used = "allow"
 missing_trait_methods = "allow"
+
+# Overly pedantic lints from restriction group
+cognitive_complexity = "allow"
+let_underscore_untyped = "allow"
+pub_use = "allow"
+
+[lints.rust]
+# Allow dead code for scaffolding (job system, email field)
+dead_code = "allow"

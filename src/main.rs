@@ -5,6 +5,7 @@ use axum::body::Body;
 use axum::http::Request;
 use db::connect_to_database;
 use tokio::net::TcpListener;
+use tokio::sync::mpsc;
 use tower_http::trace::TraceLayer;
 use tracing::field;
 
@@ -43,7 +44,7 @@ async fn main() {
 
     let db = connect_to_database().await;
 
-    let (job_tx, job_rx) = tokio::sync::mpsc::unbounded_channel();
+    let (job_tx, job_rx) = mpsc::unbounded_channel();
     tokio::spawn(services::job::run(db.clone(), job_rx));
 
     let state = AppState { db, job_tx };

@@ -11,7 +11,11 @@ pub enum Job {
     /// Example job: process something by ID.
     Process(Uuid),
     /// Example job: send an email.
-    SendEmail { to: String, subject: String, body: String },
+    SendEmail {
+        to: String,
+        subject: String,
+        body: String,
+    },
 }
 
 /// Runs the job processor, receiving jobs from the channel.

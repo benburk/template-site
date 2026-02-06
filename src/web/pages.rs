@@ -5,7 +5,9 @@
 
 use maud::{Markup, html};
 
-use super::components::{SessionDisplay, base, login_form, password_form, signup_form, username_form};
+use super::components::{
+    SessionDisplay, base, login_form, password_form, signup_form, username_form,
+};
 
 pub fn home(username: &str) -> Markup {
     base(

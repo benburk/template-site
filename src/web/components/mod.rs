@@ -1,5 +1,3 @@
-#![allow(clippy::pub_use)]
-
 mod forms;
 mod layout;
 
