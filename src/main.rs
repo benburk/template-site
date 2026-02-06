@@ -6,7 +6,8 @@ use axum::http::Request;
 use db::connect_to_database;
 use tokio::net::TcpListener;
 use tokio::sync::mpsc;
-use tower_http::trace::TraceLayer;
+use tower_http::trace::{DefaultOnRequest, DefaultOnResponse, TraceLayer};
+use tracing::Level;
 use tracing::field;
 
 mod api;
@@ -21,7 +22,7 @@ mod util;
 mod web;
 
 use app_state::AppState;
-use tracing::{Level, info};
+use tracing::info;
 use tracing_subscriber::EnvFilter;
 
 fn configure_logging() {
@@ -29,9 +30,7 @@ fn configure_logging() {
         .with_env_filter(
             EnvFilter::try_from_default_env()
                 .or_else(|_| {
-                    EnvFilter::try_new(
-                        "basic_site=debug,tower_http::trace=debug",
-                    )
+                    EnvFilter::try_new("basic_site=info,tower_http=info")
                 })
                 .unwrap(),
         )
@@ -52,19 +51,22 @@ async fn main() {
     let app = Router::new()
         .merge(web::router())
         .nest("/api/v1", api::router())
-        .layer(TraceLayer::new_for_http().make_span_with(
-            |request: &Request<Body>| {
-                let request_id = uuid::Uuid::new_v4();
-                tracing::span!(
-                    Level::DEBUG,
-                    "request",
-                    method = field::display(request.method()),
-                    uri = field::display(request.uri()),
-                    version = field::debug(request.version()),
-                    request_id = field::display(request_id)
-                )
-            },
-        ))
+        .layer(
+            TraceLayer::new_for_http()
+                .make_span_with(|request: &Request<Body>| {
+                    let request_id = uuid::Uuid::new_v4();
+                    tracing::info_span!(
+                        "request",
+                        %request_id,
+                        method = %request.method(),
+                        uri = %request.uri(),
+                        session_id = field::Empty,
+                        user_id = field::Empty,
+                    )
+                })
+                .on_request(DefaultOnRequest::new().level(Level::INFO))
+                .on_response(DefaultOnResponse::new().level(Level::INFO)),
+        )
         .with_state(state);
 
     let addr = SocketAddr::from(([0, 0, 0, 0], 3000));

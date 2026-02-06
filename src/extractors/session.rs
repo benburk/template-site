@@ -4,7 +4,7 @@ use axum::{
 };
 use axum_extra::extract::{CookieJar, cookie::Cookie};
 use sqlx::Error;
-use tracing::{info, warn};
+use tracing::{Span, debug, warn};
 use uuid::Uuid;
 
 use crate::{
@@ -46,16 +46,16 @@ async fn extract_session_id(
     let Ok(jar) = CookieJar::from_request_parts(parts, state).await;
 
     let Some(raw) = jar.get("session_id").map(Cookie::value) else {
-        info!("No session found");
         return Ok(None);
     };
 
     let Ok(session_id) = Uuid::parse_str(raw) else {
-        warn!("Failed to parse session_id");
+        warn!("Invalid session_id cookie");
         return Ok(None);
     };
 
-    info!("Extracting session {session_id}");
+    debug!(%session_id, "Session cookie found");
+    Span::current().record("session_id", session_id.to_string());
     Ok(Some(session_id))
 }
 
@@ -90,7 +90,10 @@ async fn load_user(
     user_id: Uuid,
 ) -> Result<Option<User>, (StatusCode, String)> {
     match User::get_by_id(db, user_id).await {
-        Ok(user) => Ok(Some(user)),
+        Ok(user) => {
+            Span::current().record("user_id", user_id.to_string());
+            Ok(Some(user))
+        }
         Err(Error::RowNotFound) => Ok(None),
         Err(err) => Err(internal_error(err)),
     }
