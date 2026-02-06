@@ -58,4 +58,5 @@ pub fn router() -> Router<AppState> {
         .route("/settings", get(settings::get))
         .route("/settings/username", post(settings::update_username))
         .route("/settings/password", post(settings::update_password))
+        .route("/settings/email", post(settings::update_email))
 }

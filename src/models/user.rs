@@ -67,23 +67,15 @@ impl User {
         .await
     }
 
-    pub async fn get_by_email<'e, E: SqliteExecutor<'e>>(
+    pub async fn update_email<'e, E: SqliteExecutor<'e>>(
         db: E,
-        email: &str,
-    ) -> Result<Self, sqlx::Error> {
-        sqlx::query_as!(
-            User,
-            r#"SELECT
-            id as "id: uuid::Uuid",
-            username,
-            password_hash,
-            email,
-            created_at
-            FROM 'user' WHERE email = ?"#,
-            email
-        )
-        .fetch_one(db)
-        .await
+        user_id: Uuid,
+        email: Option<&str>,
+    ) -> Result<(), sqlx::Error> {
+        sqlx::query!("UPDATE user SET email = ? WHERE id = ?", email, user_id)
+            .execute(db)
+            .await?;
+        Ok(())
     }
 
     /// Checks a usernames+password combination using the database and returns the user if it is valid.

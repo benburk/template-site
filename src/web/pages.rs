@@ -6,7 +6,8 @@
 use maud::{Markup, html};
 
 use super::components::{
-    SessionDisplay, base, login_form, password_form, signup_form, username_form,
+    SessionDisplay, base, email_form, login_form, password_form, signup_form,
+    username_form,
 };
 
 pub fn home(username: &str) -> Markup {
@@ -46,13 +47,16 @@ pub fn signup_page() -> Markup {
     base("", &signup_form("", "", ""))
 }
 
-pub fn settings(username: &str) -> Markup {
+pub fn settings(username: &str, email: Option<&str>) -> Markup {
     base(
         username,
         &html! {
             h1 { "Settings" }
             section {
                 (username_form("", "", false))
+            }
+            section {
+                (email_form(email.unwrap_or(""), "", false))
             }
             section {
                 (password_form("", "", false, false))

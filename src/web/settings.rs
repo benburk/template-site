@@ -7,12 +7,14 @@ use tracing::error;
 use crate::app_state::AppState;
 use crate::models::user::User;
 use crate::password;
+use crate::services::Job;
 
 use super::{components, pages};
 
 pub async fn get(user_opt: Option<User>) -> impl IntoResponse {
     match user_opt {
-        Some(user) => pages::settings(&user.username).into_response(),
+        Some(user) => pages::settings(&user.username, user.email.as_deref())
+            .into_response(),
         None => Redirect::to("/login").into_response(),
     }
 }
@@ -26,6 +28,11 @@ pub struct UpdateUsernamePayload {
 pub struct UpdatePasswordPayload {
     current_password: String,
     new_password: String,
+}
+
+#[derive(Deserialize)]
+pub struct UpdateEmailPayload {
+    email: String,
 }
 
 pub async fn update_username(
@@ -140,6 +147,45 @@ pub async fn update_password(
                 false,
             )
             .into_response()
+        }
+    }
+}
+
+pub async fn update_email(
+    State(state): State<AppState>,
+    user_opt: Option<User>,
+    Form(form): Form<UpdateEmailPayload>,
+) -> impl IntoResponse {
+    let Some(user) = user_opt else {
+        return Redirect::to("/login").into_response();
+    };
+
+    let email = form.email.trim();
+    let email_opt = if email.is_empty() { None } else { Some(email) };
+
+    match User::update_email(&state.db, user.id, email_opt).await {
+        Ok(()) => {
+            // Send verification email if email was provided
+            if let Some(addr) = email_opt
+                && state
+                    .job_tx
+                    .send(Job::SendEmail {
+                        to: addr.to_owned(),
+                        subject: "Verify your email".to_owned(),
+                        body: "Click here to verify your email address."
+                            .to_owned(),
+                    })
+                    .is_err()
+            {
+                error!("Failed to queue verification email");
+            }
+            components::email_form(email, "Email updated!", true)
+                .into_response()
+        }
+        Err(err) => {
+            error!("Failed to update email: {}", err);
+            components::email_form(email, "Failed to update email", false)
+                .into_response()
         }
     }
 }

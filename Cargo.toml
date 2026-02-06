@@ -51,7 +51,3 @@ missing_trait_methods = "allow"
 cognitive_complexity = "allow"
 let_underscore_untyped = "allow"
 pub_use = "allow"
-
-[lints.rust]
-# Allow dead code for scaffolding (job system, email field)
-dead_code = "allow"

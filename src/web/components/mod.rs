@@ -1,7 +1,9 @@
 mod forms;
 mod layout;
 
-pub use forms::{login_form, password_form, signup_form, username_form};
+pub use forms::{
+    email_form, login_form, password_form, signup_form, username_form,
+};
 pub use layout::base;
 
 /// Display struct for rendering session info in templates.

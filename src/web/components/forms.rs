@@ -96,6 +96,27 @@ pub fn username_form(
     }
 }
 
+pub fn email_form(
+    current_email: &str,
+    message: &str,
+    is_success: bool,
+) -> Markup {
+    html! {
+        form hx-post="/settings/email" hx-swap="outerHTML" method="post" action="/settings/email" {
+            label for="email" {
+                "Email"
+                @if message.is_empty() {
+                    input type="email" id="email" name="email" placeholder="Enter email address" value=(current_email) autocomplete="email";
+                } @else {
+                    input type="email" id="email" name="email" placeholder="Enter email address" value=(current_email) autocomplete="email" aria-invalid=(if is_success { "false" } else { "true" });
+                    small { (message) }
+                }
+            }
+            button type="submit" { "Update Email" }
+        }
+    }
+}
+
 pub fn password_form(
     current_password_message: &str,
     new_password_message: &str,
