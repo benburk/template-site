@@ -1,38 +1,73 @@
 # Basic Site
 
-A simple website to use as a starting point for saas projects.
+A forkable template for full-stack Rust web applications. Start a new project with authentication, database, and server-side rendering already working—just rename and customize.
 
-The app is a single process, not dependent on any external resources.
+## Quick Start
 
-## Tech stack
+```bash
+# Fork on GitHub, then clone your fork
+git clone git@github.com:YOUR_USERNAME/YOUR_PROJECT.git
+cd YOUR_PROJECT
 
-- Rust
-- [Axum](https://github.com/tokio-rs/axum) for web server
-- [sqlx](https://github.com/launchbadge/sqlx) for database connection
-- Maud for html components
-- [HTMX](https://htmx.org) for reactivity
-- [PicoCSS](https://picocss.com/docs/) for styling
-- sqlite for database
-- [justfile](https://just.systems/man/en/) for development recipes
+# Set up environment
+nix develop
+just db-init
+just run
+```
+
+Visit http://localhost:3000 to see the running app with login, signup, and settings pages.
 
 ## Features
 
-- [x] Log in, log out, sign up
-- [x] Password hashing with Argon2id
-- [x] Change username / password
-- [x] Request tracing in logs
-- [ ] Session management
+- **Server-side rendering** with MAUD (type-safe HTML) and HTMX (interactivity without JS frameworks)
+- **Authentication** with Argon2 password hashing and cookie-based sessions
+- **SQLite database** with sqlx compile-time query validation
+- **Background jobs** via Tokio channels (no external queue needed)
+- **Single binary** deployment—no external services required
+- **PicoCSS** for styling semantic HTML without utility classes
 
-## Build and run instructions
+## After Forking
 
-1. run `nix develop`
-2. create `.env`
+Rename the package to match your project:
+
+1. Update `name` in `Cargo.toml`
+2. Update the site title in `src/web/components/layout.rs`
+3. Update the tracing filter in `src/main.rs`
+
+Then start building:
+
+- Add models to `src/models/`
+- Add migrations to `migrations/`
+- Add pages to `src/web/pages.rs`
+- Add routes in `src/web/mod.rs`
+
+## Project Structure
 
 ```
-MIGRATIONS_PATH=migrations
-DATABASE_PATH=database.sqlite3
-DATABASE_URL=sqlite:${DATABASE_PATH}
+src/
+├── main.rs              # Entry point, spawns background services
+├── app_state.rs         # Shared state (db pool, job channel)
+├── models/              # Database models (Active Record pattern)
+├── services/            # Background job processors
+├── web/
+│   ├── components/      # MAUD components (HTML fragments for HTMX)
+│   ├── pages.rs         # Full page templates
+│   └── [feature].rs     # Route handlers
+└── extractors/          # Custom Axum extractors (auth)
+static/                  # CSS/JS embedded at compile time
+migrations/              # SQLx migrations
 ```
 
-3. Run `just db-init`
-4. Run `just run`
+## Development
+
+```bash
+just              # Show available recipes
+just run          # Start server
+just watch        # Hot-reload development
+just check        # Lint and format
+just db-init      # Reset database
+```
+
+## Tech Stack
+
+[Rust](https://www.rust-lang.org/) • [Axum](https://github.com/tokio-rs/axum) • [SQLite](https://sqlite.org/) • [sqlx](https://github.com/launchbadge/sqlx) • [MAUD](https://maud.lambda.xyz/) • [HTMX](https://htmx.org/) • [PicoCSS](https://picocss.com/)

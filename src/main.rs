@@ -15,6 +15,7 @@ mod error;
 mod extractors;
 mod models;
 mod password;
+mod services;
 mod util;
 mod web;
 
@@ -42,7 +43,10 @@ async fn main() {
 
     let db = connect_to_database().await;
 
-    let state = AppState { db };
+    let (job_tx, job_rx) = tokio::sync::mpsc::unbounded_channel();
+    tokio::spawn(services::job::run(db.clone(), job_rx));
+
+    let state = AppState { db, job_tx };
 
     let app = Router::new()
         .merge(web::router())

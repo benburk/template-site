@@ -17,11 +17,11 @@ use crate::models::user::User;
 use crate::password;
 use crate::util::current_time_micros;
 
-use super::templates;
+use super::{components, pages};
 
 pub async fn get(user: Option<User>) -> impl IntoResponse {
     let Some(_) = user else {
-        return templates::signup_page().into_response();
+        return pages::signup_page().into_response();
     };
     Redirect::to("/").into_response()
 }
@@ -40,7 +40,7 @@ pub async fn post(
     Form(form): Form<FormPayload>,
 ) -> impl IntoResponse {
     if let Err((username_message, password_message)) = validate_inputs(&form) {
-        return templates::signup_form(
+        return components::signup_form(
             &form.username,
             &username_message,
             &password_message,
@@ -56,12 +56,13 @@ pub async fn post(
         id: uuid,
         username: form.username.clone(),
         password_hash,
+        email: None,
         created_at,
     };
     match User::insert(&state.db, &user).await {
         Ok(user_id) => user_id,
         Err(sqlx::Error::Database(err)) if err.is_unique_violation() => {
-            return templates::signup_form(
+            return components::signup_form(
                 &form.username,
                 "Username already taken",
                 "",

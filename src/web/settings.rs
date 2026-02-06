@@ -8,11 +8,11 @@ use crate::app_state::AppState;
 use crate::models::user::User;
 use crate::password;
 
-use super::templates;
+use super::{components, pages};
 
 pub async fn get(user_opt: Option<User>) -> impl IntoResponse {
     match user_opt {
-        Some(user) => templates::settings(&user.username).into_response(),
+        Some(user) => pages::settings(&user.username).into_response(),
         None => Redirect::to("/login").into_response(),
     }
 }
@@ -39,7 +39,7 @@ pub async fn update_username(
 
     let username_error = password::validate_username(&form.new_username);
     if !username_error.is_empty() {
-        return templates::username_form(
+        return components::username_form(
             &form.new_username,
             &username_error,
             false,
@@ -58,7 +58,7 @@ pub async fn update_username(
     match query_result {
         Ok(_) => (
             [("HX-Trigger", "username-updated")],
-            templates::username_form(
+            components::username_form(
                 &form.new_username,
                 "Username updated successfully!",
                 true,
@@ -66,7 +66,7 @@ pub async fn update_username(
         )
             .into_response(),
         Err(sqlx::Error::Database(err)) if err.is_unique_violation() => {
-            templates::username_form(
+            components::username_form(
                 &form.new_username,
                 "Username already taken",
                 false,
@@ -75,7 +75,7 @@ pub async fn update_username(
         }
         Err(err) => {
             error!("Failed to update username: {}", err);
-            templates::username_form(
+            components::username_form(
                 &form.new_username,
                 "Failed to update username",
                 false,
@@ -96,7 +96,7 @@ pub async fn update_password(
 
     let password_error = password::validate_password(&form.new_password);
     if !password_error.is_empty() {
-        return templates::password_form("", &password_error, false, false)
+        return components::password_form("", &password_error, false, false)
             .into_response();
     }
 
@@ -104,7 +104,7 @@ pub async fn update_password(
         User::check_login(&state.db, &user.username, &form.current_password)
             .await;
     if valid_login.is_none() {
-        return templates::password_form(
+        return components::password_form(
             "Current password is incorrect",
             "",
             false,
@@ -124,7 +124,7 @@ pub async fn update_password(
     .await;
 
     match query_result {
-        Ok(_) => templates::password_form(
+        Ok(_) => components::password_form(
             "",
             "Password updated successfully!",
             false,
@@ -133,7 +133,7 @@ pub async fn update_password(
         .into_response(),
         Err(err) => {
             error!("Failed to update password: {}", err);
-            templates::password_form(
+            components::password_form(
                 "",
                 "Failed to update password",
                 false,

@@ -7,6 +7,7 @@ pub struct User {
     pub id: Uuid,
     pub username: String,
     pub password_hash: String,
+    pub email: Option<String>,
     pub created_at: i64,
 }
 
@@ -38,6 +39,7 @@ impl User {
             id as "id: uuid::Uuid",
             username,
             password_hash,
+            email,
             created_at
             FROM 'user' WHERE username = ?"#,
             username
@@ -56,9 +58,29 @@ impl User {
             id as "id: uuid::Uuid",
             username,
             password_hash,
+            email,
             created_at
             FROM 'user' WHERE id = ?"#,
             user_id
+        )
+        .fetch_one(db)
+        .await
+    }
+
+    pub async fn get_by_email<'e, E: SqliteExecutor<'e>>(
+        db: E,
+        email: &str,
+    ) -> Result<Self, sqlx::Error> {
+        sqlx::query_as!(
+            User,
+            r#"SELECT
+            id as "id: uuid::Uuid",
+            username,
+            password_hash,
+            email,
+            created_at
+            FROM 'user' WHERE email = ?"#,
+            email
         )
         .fetch_one(db)
         .await

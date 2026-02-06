@@ -8,7 +8,7 @@ use axum::{
 use crate::app_state::AppState;
 use crate::models::{session::Session, user::User};
 
-use super::templates::{self, SessionDisplay};
+use super::{components::SessionDisplay, pages};
 
 pub async fn profile(
     Path(username): Path<String>,
@@ -39,7 +39,7 @@ pub async fn profile(
         Err(_) => Vec::new(),
     };
 
-    templates::profile(&user.username, &sessions).into_response()
+    pages::profile(&user.username, &sessions).into_response()
 }
 
 fn truncate_user_agent(user_agent: &str) -> String {
