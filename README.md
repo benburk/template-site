@@ -1,4 +1,4 @@
-# Basic Site
+# Template Site
 
 A forkable template for full-stack Rust web applications. Start a new project with authentication, database, and server-side rendering already working—just rename and customize.
 

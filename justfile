@@ -8,6 +8,8 @@ default:
 bootstrap:
     cargo build
 
+alias fmt := format
+
 # Format code
 format:
     dprint fmt
