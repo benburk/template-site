@@ -1,32 +1,8 @@
 # Template Site
 
-A forkable template for full-stack Rust web applications. Start a new project with authentication, database, and server-side rendering already working—just rename and customize.
+A template for full-stack Rust web applications. Start a new project with authentication, database, and server-side rendering already working—just rename and customize.
 
-## Quick Start
-
-```bash
-# Fork on GitHub, then clone your fork
-git clone git@github.com:YOUR_USERNAME/YOUR_PROJECT.git
-cd YOUR_PROJECT
-
-# Set up environment
-nix develop
-just db-init
-just run
-```
-
-Visit http://localhost:3000 to see the running app with login, signup, and settings pages.
-
-## Features
-
-- **Server-side rendering** with MAUD (type-safe HTML) and HTMX (interactivity without JS frameworks)
-- **Authentication** with Argon2 password hashing and cookie-based sessions
-- **SQLite database** with sqlx compile-time query validation
-- **Background jobs** via Tokio channels (no external queue needed)
-- **Single binary** deployment—no external services required
-- **PicoCSS** for styling semantic HTML without utility classes
-
-## After Forking
+## Setup Instructions
 
 Rename the package to match your project:
 
