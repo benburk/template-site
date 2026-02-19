@@ -2,6 +2,15 @@
 
 A template for full-stack Rust web applications. Start a new project with authentication, database, and server-side rendering already working—just rename and customize.
 
+## Features
+
+- **Server-side rendering** with MAUD (type-safe HTML) and HTMX (interactivity without JS frameworks)
+- **Authentication** with Argon2 password hashing and cookie-based sessions
+- **SQLite database** with sqlx compile-time query validation
+- **Background jobs** via Tokio channels (no external queue needed)
+- **Single binary** deployment—no external services required
+- **PicoCSS** for styling semantic HTML without utility classes
+
 ## Setup Instructions
 
 Rename the package to match your project:
