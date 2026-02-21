@@ -1,15 +1,15 @@
 # Template Site
 
-A template for full-stack Rust web applications. Start a new project with authentication, database, and server-side rendering already working—just rename and customize.
+A starting point for full-stack Rust web applications that constrains LLM-assisted development to a known-good stack. Without a template, every new project gets different framework choices, different auth strategies, and different database patterns. This template locks in [Axum](https://github.com/tokio-rs/axum), [SQLite](https://sqlite.org/), [MAUD](https://maud.lambda.xyz/), and [HTMX](https://htmx.org/) — rename and customize.
 
 ## Features
 
-- **Server-side rendering** with MAUD (type-safe HTML) and HTMX (interactivity without JS frameworks)
-- **Authentication** with Argon2 password hashing and cookie-based sessions
-- **SQLite database** with sqlx compile-time query validation
-- **Background jobs** via Tokio channels (no external queue needed)
-- **Single binary** deployment—no external services required
-- **PicoCSS** for styling semantic HTML without utility classes
+- **Server-side rendering** with [MAUD](https://maud.lambda.xyz/) (type-safe HTML via Rust macros) and [HTMX](https://htmx.org/) (interactivity without JS frameworks)
+- **Authentication** with [Argon2](https://en.wikipedia.org/wiki/Argon2) password hashing and cookie-based sessions
+- **SQLite database** with [sqlx](https://github.com/launchbadge/sqlx) compile-time query validation
+- **Background jobs** via [Tokio](https://tokio.rs/) channels (no external queue needed)
+- **Single binary** deployment — no external services required
+- **[PicoCSS](https://picocss.com/)** for styling semantic HTML without utility classes
 
 ## Setup Instructions
 
@@ -18,6 +18,7 @@ Rename the package to match your project:
 1. Update `name` in `Cargo.toml`
 2. Update the site title in `src/web/components/layout.rs`
 3. Update the tracing filter in `src/main.rs`
+4. Run `direnv allow && just bootstrap && just check`
 
 Then start building:
 
@@ -55,4 +56,4 @@ just db-init      # Reset database
 
 ## Tech Stack
 
-[Rust](https://www.rust-lang.org/) • [Axum](https://github.com/tokio-rs/axum) • [SQLite](https://sqlite.org/) • [sqlx](https://github.com/launchbadge/sqlx) • [MAUD](https://maud.lambda.xyz/) • [HTMX](https://htmx.org/) • [PicoCSS](https://picocss.com/)
+[Rust](https://www.rust-lang.org/) • [Axum](https://github.com/tokio-rs/axum) • [SQLite](https://sqlite.org/) • [sqlx](https://github.com/launchbadge/sqlx) • [MAUD](https://maud.lambda.xyz/) • [HTMX](https://htmx.org/) • [PicoCSS](https://picocss.com/) • [direnv](https://direnv.net/) • [just](https://github.com/casey/just)
