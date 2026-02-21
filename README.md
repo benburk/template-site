@@ -1,6 +1,6 @@
 # Template Site
 
-A starting point for full-stack Rust web applications that constrains LLM-assisted development to a known-good stack. Without a template, every new project gets different framework choices, different auth strategies, and different database patterns. This template locks in [Axum](https://github.com/tokio-rs/axum), [SQLite](https://sqlite.org/), [MAUD](https://maud.lambda.xyz/), and [HTMX](https://htmx.org/) — rename and customize.
+A starting point for full-stack Rust web applications that constrains LLM-assisted development to a known-good stack.
 
 ## Features
 
@@ -19,13 +19,6 @@ Rename the package to match your project:
 2. Update the site title in `src/web/components/layout.rs`
 3. Update the tracing filter in `src/main.rs`
 4. Run `direnv allow && just bootstrap && just check`
-
-Then start building:
-
-- Add models to `src/models/`
-- Add migrations to `migrations/`
-- Add pages to `src/web/pages.rs`
-- Add routes in `src/web/mod.rs`
 
 ## Project Structure
 
@@ -46,14 +39,15 @@ migrations/              # SQLx migrations
 
 ## Development
 
-```bash
-just              # Show available recipes
-just run          # Start server
-just watch        # Hot-reload development
-just check        # Lint and format
-just db-init      # Reset database
-```
+Run `just` to see available recipes.
 
 ## Tech Stack
 
-[Rust](https://www.rust-lang.org/) • [Axum](https://github.com/tokio-rs/axum) • [SQLite](https://sqlite.org/) • [sqlx](https://github.com/launchbadge/sqlx) • [MAUD](https://maud.lambda.xyz/) • [HTMX](https://htmx.org/) • [PicoCSS](https://picocss.com/) • [direnv](https://direnv.net/) • [just](https://github.com/casey/just)
+- [Axum](https://github.com/tokio-rs/axum)
+- [SQLite](https://sqlite.org/)
+- [sqlx](https://github.com/launchbadge/sqlx)
+- [MAUD](https://maud.lambda.xyz/)
+- [HTMX](https://htmx.org/)
+- [PicoCSS](https://picocss.com/)
+- [direnv](https://direnv.net/)
+- [just](https://github.com/casey/just)
