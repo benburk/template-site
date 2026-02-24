@@ -18,7 +18,10 @@ Rename the package to match your project:
 1. Update `name` in `Cargo.toml`
 2. Update the site title in `src/web/components/layout.rs`
 3. Update the tracing filter in `src/main.rs`
-4. Run `direnv allow && just bootstrap && just check`
+4. Run `cp .env.example .env`
+5. Run `git add flake.nix flake.lock`
+6. Run `direnv allow`
+7. Run `just db-init && just bootstrap && just check`
 
 ## Project Structure
 
