@@ -16,7 +16,7 @@ pub async fn profile(
     user_opt: Option<User>,
 ) -> impl IntoResponse {
     let Some(user) = user_opt else {
-        return Redirect::to("/login").into_response();
+        return Redirect::to("/sessions/new").into_response();
     };
 
     if user.username != username {

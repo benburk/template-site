@@ -15,48 +15,62 @@ pub async fn get(user_opt: Option<User>) -> impl IntoResponse {
     match user_opt {
         Some(user) => pages::settings(&user.username, user.email.as_deref())
             .into_response(),
-        None => Redirect::to("/login").into_response(),
+        None => Redirect::to("/sessions/new").into_response(),
     }
 }
 
 #[derive(Deserialize)]
-pub struct UpdateUsernamePayload {
-    new_username: String,
+pub struct UpdateSettingsPayload {
+    new_username: Option<String>,
+    current_password: Option<String>,
+    new_password: Option<String>,
+    email: Option<String>,
 }
 
-#[derive(Deserialize)]
-pub struct UpdatePasswordPayload {
-    current_password: String,
-    new_password: String,
-}
-
-#[derive(Deserialize)]
-pub struct UpdateEmailPayload {
-    email: String,
-}
-
-pub async fn update_username(
+pub async fn patch(
     State(state): State<AppState>,
     user_opt: Option<User>,
-    Form(form): Form<UpdateUsernamePayload>,
+    Form(form): Form<UpdateSettingsPayload>,
 ) -> impl IntoResponse {
     let Some(user) = user_opt else {
-        return Redirect::to("/login").into_response();
+        return Redirect::to("/sessions/new").into_response();
     };
 
-    let username_error = password::validate_username(&form.new_username);
-    if !username_error.is_empty() {
-        return components::username_form(
-            &form.new_username,
-            &username_error,
-            false,
+    if let Some(new_username) = form.new_username {
+        return handle_username_update(&state, &user, &new_username).await;
+    }
+
+    if form.current_password.is_some() || form.new_password.is_some() {
+        return handle_password_update(
+            &state,
+            &user,
+            form.current_password.as_deref().unwrap_or(""),
+            form.new_password.as_deref().unwrap_or(""),
         )
-        .into_response();
+        .await;
+    }
+
+    if let Some(email) = form.email {
+        return handle_email_update(&state, &user, &email).await;
+    }
+
+    Redirect::to("/settings").into_response()
+}
+
+async fn handle_username_update(
+    state: &AppState,
+    user: &User,
+    new_username: &str,
+) -> axum::response::Response {
+    let username_error = password::validate_username(new_username);
+    if !username_error.is_empty() {
+        return components::username_form(new_username, &username_error, false)
+            .into_response();
     }
 
     let query_result = sqlx::query!(
         "UPDATE user SET username = ? WHERE id = ?",
-        form.new_username,
+        new_username,
         user.id
     )
     .execute(&state.db)
@@ -66,7 +80,7 @@ pub async fn update_username(
         Ok(_) => (
             [("HX-Trigger", "username-updated")],
             components::username_form(
-                &form.new_username,
+                new_username,
                 "Username updated successfully!",
                 true,
             ),
@@ -74,7 +88,7 @@ pub async fn update_username(
             .into_response(),
         Err(sqlx::Error::Database(err)) if err.is_unique_violation() => {
             components::username_form(
-                &form.new_username,
+                new_username,
                 "Username already taken",
                 false,
             )
@@ -83,7 +97,7 @@ pub async fn update_username(
         Err(err) => {
             error!("Failed to update username: {}", err);
             components::username_form(
-                &form.new_username,
+                new_username,
                 "Failed to update username",
                 false,
             )
@@ -92,24 +106,20 @@ pub async fn update_username(
     }
 }
 
-pub async fn update_password(
-    State(state): State<AppState>,
-    user_opt: Option<User>,
-    Form(form): Form<UpdatePasswordPayload>,
-) -> impl IntoResponse {
-    let Some(user) = user_opt else {
-        return Redirect::to("/login").into_response();
-    };
-
-    let password_error = password::validate_password(&form.new_password);
+async fn handle_password_update(
+    state: &AppState,
+    user: &User,
+    current_password: &str,
+    new_password: &str,
+) -> axum::response::Response {
+    let password_error = password::validate_password(new_password);
     if !password_error.is_empty() {
         return components::password_form("", &password_error, false, false)
             .into_response();
     }
 
     let valid_login =
-        User::check_login(&state.db, &user.username, &form.current_password)
-            .await;
+        User::check_login(&state.db, &user.username, current_password).await;
     if valid_login.is_none() {
         return components::password_form(
             "Current password is incorrect",
@@ -120,7 +130,7 @@ pub async fn update_password(
         .into_response();
     }
 
-    let new_password_hash = password::generate_hash(&form.new_password);
+    let new_password_hash = password::generate_hash(new_password);
 
     let query_result = sqlx::query!(
         "UPDATE user SET password_hash = ? WHERE id = ?",
@@ -151,16 +161,12 @@ pub async fn update_password(
     }
 }
 
-pub async fn update_email(
-    State(state): State<AppState>,
-    user_opt: Option<User>,
-    Form(form): Form<UpdateEmailPayload>,
-) -> impl IntoResponse {
-    let Some(user) = user_opt else {
-        return Redirect::to("/login").into_response();
-    };
-
-    let email = form.email.trim();
+async fn handle_email_update(
+    state: &AppState,
+    user: &User,
+    email: &str,
+) -> axum::response::Response {
+    let email = email.trim();
     let email_opt = if email.is_empty() { None } else { Some(email) };
 
     match User::update_email(&state.db, user.id, email_opt).await {

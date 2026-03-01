@@ -10,7 +10,7 @@ pub fn username_form(
     let aria_invalid = (!username_message.is_empty())
         .then_some(if username_is_success { "false" } else { "true" });
     html! {
-        form hx-post="/settings/username" hx-swap="outerHTML" method="post" action="/settings/username" {
+        form hx-patch="/settings" hx-swap="outerHTML" {
             label for="new_username" {
                 "New Username"
                 input type="text" id="new_username" name="new_username" placeholder="Enter new username" value=(new_username) required minlength="5" maxlength="20"
@@ -35,7 +35,7 @@ pub fn email_form(
         "true"
     });
     html! {
-        form hx-post="/settings/email" hx-swap="outerHTML" method="post" action="/settings/email" {
+        form hx-patch="/settings" hx-swap="outerHTML" {
             label for="email" {
                 "Email"
                 input type="email" id="email" name="email" placeholder="Enter email address" value=(current_email) autocomplete="email"
@@ -70,7 +70,7 @@ pub fn password_form(
         },
     );
     html! {
-        form hx-post="/settings/password" hx-swap="outerHTML" method="post" action="/settings/password" {
+        form hx-patch="/settings" hx-swap="outerHTML" {
             label for="current_password" {
                 "Current Password"
                 input type="password" id="current_password" name="current_password" placeholder="Enter current password" required

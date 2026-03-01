@@ -7,7 +7,7 @@ pub fn login_form(username: &str, error_message: &str) -> Markup {
     html! {
         article hx-target="this" hx-swap="outerHTML" {
             header { h1 { "Login" } }
-            form hx-post="/session" method="post" {
+            form hx-post="/sessions" method="post" {
                 fieldset {
                     label {
                         "Username "
@@ -26,7 +26,7 @@ pub fn login_form(username: &str, error_message: &str) -> Markup {
                 }
                 button type="submit" { "Log in" }
             }
-            footer { "Don't have an account? " a href="/signup" { "Sign up" } }
+            footer { "Don't have an account? " a href="/users/new" { "Sign up" } }
         }
     }
 }
@@ -39,7 +39,7 @@ pub fn signup_form(
     html! {
         article hx-target="this" hx-swap="outerHTML" {
             header { h1 { "Sign up" } }
-            form hx-post="/signup" method="post" {
+            form hx-post="/users" method="post" {
                 fieldset {
                     label {
                         "Username"
@@ -60,7 +60,7 @@ pub fn signup_form(
                 }
                 button type="submit" { "Sign up" }
             }
-            footer { "Already have an account? " a href="/login" { "Log in" } }
+            footer { "Already have an account? " a href="/sessions/new" { "Log in" } }
         }
     }
 }

@@ -33,13 +33,13 @@ pub fn navbar(username: &str) -> Markup {
             ul {
                 li { a href="/about" { "About" } }
                 @if username.is_empty() {
-                    li { a href="/login" { "Log in" } }
-                    li { a href="/signup" { "Sign up" } }
+                    li { a href="/sessions/new" { "Log in" } }
+                    li { a href="/users/new" { "Sign up" } }
                 } @else {
                     li { a href={ "/users/" (username) } { (username) } }
                     li { a href="/settings" { "Settings" } }
                     li {
-                        a href="/" hx-delete="/session" hx-trigger="click" hx-swap="none" class="secondary" {
+                        a href="/" hx-delete="/sessions" hx-trigger="click" hx-swap="none" class="secondary" {
                             "Logout"
                         }
                     }
