@@ -19,14 +19,11 @@ format:
 
 # Run linters and static analysis
 check:
-    #!/usr/bin/env fish
-    set status_flag 0
-    dprint check; or set status_flag 1
-    cargo fmt --check; or set status_flag 1
-    cargo clippy -- -D warnings; or set status_flag 1
-    fd -e nix | xargs -r nixfmt --check; or set status_flag 1
-    ! rg -l '[^\n]\z' --multiline; or set status_flag 1
-    exit $status_flag
+    dprint check
+    cargo fmt --check
+    cargo clippy -- -D warnings
+    fd -e nix | xargs -r nixfmt --check
+    ! rg -l '[^\n]\z' --multiline
 
 # Run the test suite
 test:
