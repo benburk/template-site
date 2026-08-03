@@ -27,7 +27,6 @@
             src = ./.;
             cargoLock.lockFile = ./Cargo.lock;
             meta = {
-              description = "A forkable template for full-stack Rust web applications";
               mainProgram = "basic_site";
             };
           };
