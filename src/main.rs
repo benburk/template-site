@@ -3,10 +3,10 @@ use std::net::SocketAddr;
 use axum::Router;
 use axum::body::Body;
 use axum::http::Request;
-use basic_site::app_state::AppState;
-use basic_site::db::connect_to_database;
-use basic_site::services;
-use basic_site::web;
+use project_name::app_state::AppState;
+use project_name::db::connect_to_database;
+use project_name::services;
+use project_name::web;
 use tokio::net::TcpListener;
 use tokio::sync::mpsc;
 use tower_http::trace::{DefaultOnRequest, DefaultOnResponse, TraceLayer};
@@ -22,7 +22,7 @@ fn configure_logging() {
         .with_env_filter(
             EnvFilter::try_from_default_env()
                 .or_else(|_| {
-                    EnvFilter::try_new("basic_site=info,tower_http=info")
+                    EnvFilter::try_new("project_name=info,tower_http=info")
                 })
                 .unwrap(),
         )

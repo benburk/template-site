@@ -14,7 +14,7 @@ pub fn home(username: &str) -> Markup {
     base(
         username,
         &html! {
-            h1 { "Basic Site" }
+            h1 { "Project Name" }
             p { "A simple web application built with modern Rust tooling." }
             h2 { "Tech Stack" }
             ul {

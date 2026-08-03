@@ -1,8 +1,8 @@
 //! Integration tests for database models.
 
-use basic_site::models::{session::Session, user::User};
-use basic_site::password::generate_hash;
-use basic_site::util::current_time_micros;
+use project_name::models::{session::Session, user::User};
+use project_name::password::generate_hash;
+use project_name::util::current_time_micros;
 use sqlx::{SqlitePool, sqlite::SqlitePoolOptions};
 use uuid::Uuid;
 

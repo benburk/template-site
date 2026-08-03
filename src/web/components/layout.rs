@@ -7,7 +7,7 @@ pub fn base(username: &str, content: &Markup) -> Markup {
             head {
                 meta charset="UTF-8";
                 meta name="viewport" content="width=device-width, initial-scale=1.0";
-                title { "Basic Site" }
+                title { "Project Name" }
                 link rel="stylesheet" href="/pico.min.css";
                 link rel="stylesheet" href="/pico.colors.min.css";
                 script src="/htmx.min.js" {}
@@ -27,7 +27,7 @@ pub fn navbar(username: &str) -> Markup {
         nav class="container-fluid" {
             ul {
                 li {
-                    h1 { a href="/" { "Basic Site" } }
+                    h1 { a href="/" { "Project Name" } }
                 }
             }
             ul {

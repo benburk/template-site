@@ -1,6 +1,6 @@
 {
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-25.11";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-26.05";
   };
 
   outputs =
@@ -22,12 +22,12 @@
         in
         {
           default = pkgs.rustPlatform.buildRustPackage {
-            pname = "basic_site";
+            pname = "project-name";
             version = "0.1.0";
             src = ./.;
             cargoLock.lockFile = ./Cargo.lock;
             meta = {
-              mainProgram = "basic_site";
+              mainProgram = "project-name";
             };
           };
         }
@@ -52,7 +52,7 @@
               dprint
               fd
               ripgrep
-              nixfmt-rfc-style
+              nixfmt
               watchexec
               sqlite
             ];

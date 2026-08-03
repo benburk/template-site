@@ -1,4 +1,4 @@
-//! Basic Site - A forkable Rust web application template.
+//! Project Name - A forkable Rust web application template.
 
 pub mod app_state;
 pub mod db;
