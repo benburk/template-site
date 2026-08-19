@@ -1,8 +1,8 @@
 //! Integration tests for database models.
 
-use project_name::models::{session::Session, user::User};
-use project_name::password::generate_hash;
-use project_name::util::current_time_micros;
+use app::models::{session::Session, user::User};
+use app::password::generate_hash;
+use app::util::current_time_micros;
 use sqlx::{SqlitePool, sqlite::SqlitePoolOptions};
 use uuid::Uuid;
 

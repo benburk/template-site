@@ -5,6 +5,8 @@
 
 use maud::{Markup, html};
 
+use crate::APP_NAME;
+
 use super::components::{
     SessionDisplay, base, email_form, login_form, password_form, signup_form,
     username_form,
@@ -14,7 +16,7 @@ pub fn home(username: &str) -> Markup {
     base(
         username,
         &html! {
-            h1 { "Project Name" }
+            h1 { (APP_NAME) }
             p { "A simple web application built with modern Rust tooling." }
             h2 { "Tech Stack" }
             ul {

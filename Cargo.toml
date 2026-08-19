@@ -3,6 +3,11 @@ name = "project-name"
 version = "0.1.0"
 edition = "2024"
 
+# The library keeps a fixed crate name so the binary, the tests, and the
+# tracing filter never have to spell out the project's name.
+[lib]
+name = "app"
+
 [dependencies]
 argon2 = { version = "0.5.3", features = ["std"] }
 axum = "0.8.4"

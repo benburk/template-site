@@ -1,5 +1,7 @@
 use maud::{DOCTYPE, Markup, html};
 
+use crate::APP_NAME;
+
 pub fn base(username: &str, content: &Markup) -> Markup {
     html! {
         (DOCTYPE)
@@ -7,7 +9,7 @@ pub fn base(username: &str, content: &Markup) -> Markup {
             head {
                 meta charset="UTF-8";
                 meta name="viewport" content="width=device-width, initial-scale=1.0";
-                title { "Project Name" }
+                title { (APP_NAME) }
                 link rel="stylesheet" href="/pico.min.css";
                 link rel="stylesheet" href="/pico.colors.min.css";
                 script src="/htmx.min.js" {}
@@ -27,7 +29,7 @@ pub fn navbar(username: &str) -> Markup {
         nav class="container-fluid" {
             ul {
                 li {
-                    h1 { a href="/" { "Project Name" } }
+                    h1 { a href="/" { (APP_NAME) } }
                 }
             }
             ul {

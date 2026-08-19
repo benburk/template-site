@@ -1,12 +1,12 @@
 use std::net::SocketAddr;
 
+use app::app_state::AppState;
+use app::db::connect_to_database;
+use app::services;
+use app::web;
 use axum::Router;
 use axum::body::Body;
 use axum::http::Request;
-use project_name::app_state::AppState;
-use project_name::db::connect_to_database;
-use project_name::services;
-use project_name::web;
 use tokio::net::TcpListener;
 use tokio::sync::mpsc;
 use tower_http::trace::{DefaultOnRequest, DefaultOnResponse, TraceLayer};
@@ -21,9 +21,7 @@ fn configure_logging() {
     tracing_subscriber::fmt()
         .with_env_filter(
             EnvFilter::try_from_default_env()
-                .or_else(|_| {
-                    EnvFilter::try_new("project_name=info,tower_http=info")
-                })
+                .or_else(|_| EnvFilter::try_new("app=info,tower_http=info"))
                 .unwrap(),
         )
         .init();

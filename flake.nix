@@ -13,6 +13,8 @@
         "aarch64-darwin"
       ];
       forAllSystems = nixpkgs.lib.genAttrs supportedSystems;
+      # Cargo.toml is the one place the package is named and versioned.
+      cargoToml = builtins.fromTOML (builtins.readFile ./Cargo.toml);
     in
     {
       packages = forAllSystems (
@@ -22,12 +24,12 @@
         in
         {
           default = pkgs.rustPlatform.buildRustPackage {
-            pname = "project-name";
-            version = "0.1.0";
+            pname = cargoToml.package.name;
+            version = cargoToml.package.version;
             src = ./.;
             cargoLock.lockFile = ./Cargo.lock;
             meta = {
-              mainProgram = "project-name";
+              mainProgram = cargoToml.package.name;
             };
           };
         }
