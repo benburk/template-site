@@ -13,13 +13,34 @@ A starting point for full-stack Rust web applications that constrains LLM-assist
 
 ## Setup Instructions
 
-Rename the package to match your project:
+Two places carry the project's name; the rest refer to the library as `app`:
 
 1. Update `name` in `Cargo.toml`
-2. Update the site title in `src/web/components/layout.rs`
-3. Update the tracing filter in `src/main.rs`
-4. Run `cp .env.example .env`
-5. Run `nix develop --command just db-init && nix develop --command just bootstrap && nix develop --command just check`
+2. Update `APP_NAME` in `src/lib.rs` — the name shown to visitors
+
+Then:
+
+```sh
+cp .env.example .env
+nix develop --command just check      # no database needed
+nix develop --command just db-init    # only to run the app
+```
+
+## Queries and the database
+
+`sqlx` validates SQL at compile time. Rather than requiring a live database
+to build, the query metadata is committed to `.sqlx/` and `SQLX_OFFLINE=true`
+makes the macros read it — so building, linting, and CI need no database at
+all.
+
+After adding or changing a query, refresh it:
+
+```sh
+nix develop --command just prepare    # needs a database; run db-init first
+```
+
+Forgetting is safe: the next build fails with `no cached data for this
+query` rather than silently disagreeing with what is committed.
 
 ## Project Structure
 

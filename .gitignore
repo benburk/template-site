@@ -1,5 +1,4 @@
 .claude/
-.sqlx/
 *.sqlite3*
 .env
 target/

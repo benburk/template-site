@@ -43,6 +43,11 @@ run *args:
 watch:
     watchexec -r -e rs,html,css,js -- cargo run
 
+# Refresh the offline query metadata in .sqlx/ after changing a query.
+# Needs a live database; everything else does not.
+prepare:
+    cargo sqlx prepare
+
 # Reset database with migrations and seeds
 db-init:
     sqlx database drop -y
