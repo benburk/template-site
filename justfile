@@ -1,4 +1,4 @@
-set dotenv-load := true
+set dotenv-load
 
 # Display available recipes
 default:
@@ -12,39 +12,42 @@ alias fmt := format
 
 # Format code
 format:
+    just --fmt
     dprint fmt
-    cargo fmt
-    fd -e nix | xargs -r nixfmt
+    cargo fmt --all
+    fd -e nix -X nixfmt
     # The trailing `.` is required: with no path, ripgrep reads stdin when
     # stdin is not a TTY and blocks forever instead of searching the tree.
     rg -l '[^\n]\z' --multiline . | xargs -r sed -i -e '$a\\'
 
 # Run linters and static analysis
 check:
+    just --fmt --check
     dprint check
-    cargo fmt --check
-    cargo clippy -- -D warnings
-    fd -e nix | xargs -r nixfmt --check
+    @fd -e md --hidden -E .git -X awk '/^[[:space:]]*[|]/ && length($0) > 80 {print FILENAME ":" FNR ": table row is " length($0) " chars (>80)"; bad=1} END {exit bad}'
+    cargo fmt --all -- --check
+    cargo clippy --workspace -- -D warnings
+    fd -e nix -X nixfmt --check
     ! rg -l '[^\n]\z' --multiline .
 
 # Run the test suite
 test:
-    cargo test
+    cargo test --workspace
 
 # Build release binary
 build:
     cargo build --release
 
-# Run the project
-run *args:
-    cargo run -- {{ args }}
+# Run the server until interrupted
+serve:
+    cargo run
 
-# Watch for changes and restart
+# Restart the server when source files change
 watch:
-    watchexec -r -e rs,html,css,js -- cargo run
+    watchexec --restart --watch src --watch static --exts rs,html,css,js -- just serve
 
-# Refresh the offline query metadata in .sqlx/ after changing a query.
 # Needs a live database; everything else does not.
+[doc('Refresh the offline query metadata in .sqlx/ after changing a query')]
 prepare:
     cargo sqlx prepare
 
