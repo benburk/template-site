@@ -80,7 +80,7 @@ pub async fn post(
     )
     .await
     {
-        Ok(cookie) => ([("HX-Redirect", "/")], jar.add(cookie)).into_response(),
+        Ok(cookie) => (jar.add(cookie), Redirect::to("/")).into_response(),
         Err(err) => internal_error(err).into_response(),
     }
 }

@@ -1,7 +1,7 @@
-//! Form components for HTMX partial updates.
+//! Form components for fixi partial updates.
 //!
-//! These return HTML fragments, not full pages.
-//! Use with hx-swap to replace form content on submit.
+//! These return HTML fragments, not full pages. Fixi replaces each submitted
+//! form with the returned component.
 
 mod auth;
 mod settings;

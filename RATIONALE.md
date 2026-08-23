@@ -1,16 +1,16 @@
 # Rationale
 
-## Why HTMX instead of React or Vue
+## Why fixi.js instead of React or Vue
 
 SPAs split every feature across two codebases communicating over JSON APIs. Adding a feature requires updating the backend serializer, API schema, TypeScript interfaces, and frontend deserializer. Frontend and backend deploy independently, requiring API versioning and backwards compatibility layers.
 
-HTMX returns HTML over the wire. Features live in one place and deploy as one artifact. No JSON serialization, no API versioning, no coordinating changes across deployments. Breaking changes are non-issues because there's no separate client lagging behind.
+fixi.js swaps HTML returned by the server. Features live in one place and deploy as one artifact. No JSON serialization, no API versioning, no coordinating changes across deployments. Breaking changes are non-issues because there's no separate client lagging behind.
 
 ## Why server-owned state instead of client-side state management
 
 SPAs require client-side state that mirrors server state, spawning libraries like React Query and Redux solely to manage cache invalidation, optimistic updates, and refetch logic. You solve stale data refresh timing and concurrent modification handling across tabs.
 
-With HTMX, the server owns all state. Every interaction fetches current state. No cache invalidation, no optimistic updates that need rollback, no stale data bugs from client-side state diverging from reality.
+With fixi.js, the server owns all state. Every interaction fetches current state. No cache invalidation, no optimistic updates that need rollback, no stale data bugs from client-side state diverging from reality.
 
 ## Why SQLite instead of Postgres
 

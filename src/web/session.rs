@@ -1,5 +1,9 @@
 use axum::extract::{ConnectInfo, Path, State};
-use axum::{Form, http::StatusCode, response::IntoResponse};
+use axum::{
+    Form,
+    http::StatusCode,
+    response::{IntoResponse, Redirect},
+};
 use axum_extra::TypedHeader;
 use axum_extra::extract::{
     CookieJar,
@@ -91,7 +95,7 @@ pub async fn post(
     )
     .await
     {
-        Ok(cookie) => ([("HX-Redirect", "/")], jar.add(cookie)).into_response(),
+        Ok(cookie) => (jar.add(cookie), Redirect::to("/")).into_response(),
         Err(err) => internal_error(err).into_response(),
     }
 }
@@ -108,11 +112,7 @@ pub async fn delete(
     {
         return internal_error(err).into_response();
     }
-    (
-        [("HX-Redirect", "/")],
-        jar.remove(Cookie::build("session_id")),
-    )
-        .into_response()
+    (jar.remove(Cookie::build("session_id")), Redirect::to("/")).into_response()
 }
 
 /// Delete a specific session by session ID

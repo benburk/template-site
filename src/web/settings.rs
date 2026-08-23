@@ -77,15 +77,12 @@ async fn handle_username_update(
     .await;
 
     match query_result {
-        Ok(_) => (
-            [("HX-Trigger", "username-updated")],
-            components::username_form(
-                new_username,
-                "Username updated successfully!",
-                true,
-            ),
+        Ok(_) => components::username_form(
+            new_username,
+            "Username updated successfully!",
+            true,
         )
-            .into_response(),
+        .into_response(),
         Err(sqlx::Error::Database(err)) if err.is_unique_violation() => {
             components::username_form(
                 new_username,

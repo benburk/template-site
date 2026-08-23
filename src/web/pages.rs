@@ -1,7 +1,7 @@
 //! Full page templates.
 //!
 //! These return complete HTML documents wrapped in the base layout.
-//! For HTMX partial updates, use components directly.
+//! For fixi partial updates, use components directly.
 
 use maud::{Markup, html};
 
@@ -15,6 +15,8 @@ use super::components::{
 pub fn home(username: &str) -> Markup {
     base(
         username,
+        APP_NAME,
+        "/",
         &html! {
             h1 { (APP_NAME) }
             p { "A simple web application built with modern Rust tooling." }
@@ -24,7 +26,7 @@ pub fn home(username: &str) -> Markup {
                 li { a href="https://github.com/tokio-rs/axum" { "Axum" } " for web server" }
                 li { a href="https://github.com/launchbadge/sqlx" { "sqlx" } " for database connection" }
                 li { "Maud for html components" }
-                li { a href="https://htmx.org" { "HTMX" } " for reactivity" }
+                li { a href="https://github.com/bigskysoftware/fixi" { "fixi.js" } " for reactivity" }
                 li { a href="https://picocss.com/docs/" { "PicoCSS" } " for styling" }
                 li { "sqlite for database" }
             }
@@ -35,23 +37,28 @@ pub fn home(username: &str) -> Markup {
 pub fn about(username: &str) -> Markup {
     base(
         username,
+        "About",
+        "/about",
         &html! {
-            h1 { "Hello World" }
+            h1 { "About" }
+            p { "Hello World" }
         },
     )
 }
 
 pub fn login_page() -> Markup {
-    base("", &login_form("", ""))
+    base("", "Log in", "/sessions/new", &login_form("", ""))
 }
 
 pub fn signup_page() -> Markup {
-    base("", &signup_form("", "", ""))
+    base("", "Sign up", "/users/new", &signup_form("", "", ""))
 }
 
 pub fn settings(username: &str, email: Option<&str>) -> Markup {
     base(
         username,
+        "Settings",
+        "/settings",
         &html! {
             h1 { "Settings" }
             section {
@@ -61,32 +68,39 @@ pub fn settings(username: &str, email: Option<&str>) -> Markup {
                 (email_form(email.unwrap_or(""), "", false))
             }
             section {
-                (password_form("", "", false, false))
+                details {
+                    summary { "Change password" }
+                    (password_form("", "", false, false))
+                }
             }
         },
     )
 }
 
 pub fn profile(username: &str, sessions: &[SessionDisplay]) -> Markup {
+    let profile_path = format!("/users/{username}");
     base(
         username,
+        "Profile",
+        &profile_path,
         &html! {
             h1 { "Hello, " (username) "!" }
-            h2 { "Active Sessions" }
+            h2 id="active-sessions-heading" tabindex="-1" { "Active Sessions" }
             @if !sessions.is_empty() {
                 table {
                     thead {
                         tr {
-                            th { "Device/Browser" }
-                            th { "IP Address" }
-                            th { "Created" }
-                            th { "Expires" }
-                            th { "Actions" }
+                            th scope="col" { "Device/Browser" }
+                            th scope="col" { "IP Address" }
+                            th scope="col" { "Created" }
+                            th scope="col" { "Expires" }
+                            th scope="col" { "Actions" }
                         }
                     }
                     tbody {
                         @for session in sessions {
-                            tr data-theme=[session.is_current.then_some("primary")] {
+                            tr id={ "session-" (session.id) }
+                                data-theme=[session.is_current.then_some("primary")] {
                                 td { (session.user_agent) }
                                 td { (session.ip_address) }
                                 td { (session.created_at) }
@@ -95,13 +109,13 @@ pub fn profile(username: &str, sessions: &[SessionDisplay]) -> Markup {
                                     @if session.is_current {
                                         small { "Current session" }
                                     } @else {
-                                        button
-                                            hx-delete={"/sessions/" (session.id)}
-                                            hx-target="closest tr"
-                                            hx-swap="outerHTML swap:1s"
-                                            hx-confirm="Are you sure you want to revoke this session?"
+                                        button type="button"
+                                            fx-action={"/sessions/" (session.id)}
+                                            fx-method="delete"
+                                            fx-target={"#session-" (session.id)}
+                                            ext-fx-confirm="Are you sure you want to revoke this session?"
+                                            data-focus-after-remove="#active-sessions-heading"
                                             data-theme="outline"
-                                            role="button"
                                         {
                                             "Revoke"
                                         }

@@ -36,10 +36,17 @@ async fn get_pico_colors() -> impl IntoResponse {
     )
 }
 
-async fn get_htmx() -> impl IntoResponse {
+async fn get_fixi() -> impl IntoResponse {
     (
         [(header::CONTENT_TYPE, "text/javascript")],
-        include_str!("../../static/htmx.min.js"),
+        include_str!("../../static/fixi.js"),
+    )
+}
+
+async fn get_fixi_config() -> impl IntoResponse {
+    (
+        [(header::CONTENT_TYPE, "text/javascript")],
+        include_str!("../../static/fixi-config.js"),
     )
 }
 
@@ -48,7 +55,8 @@ pub fn static_router() -> Router<AppState> {
     Router::new()
         .route("/pico.min.css", get(get_pico_css))
         .route("/pico.colors.min.css", get(get_pico_colors))
-        .route("/htmx.min.js", get(get_htmx))
+        .route("/fixi.js", get(get_fixi))
+        .route("/fixi-config.js", get(get_fixi_config))
 }
 
 /// Dynamic routes - with request logging
