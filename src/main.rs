@@ -27,6 +27,15 @@ fn configure_logging() {
         .init();
 }
 
+fn port() -> u16 {
+    match std::env::var("PORT") {
+        Ok(value) => value
+            .parse()
+            .expect("PORT is `{value}`, which is not a port number"),
+        Err(_) => 3000,
+    }
+}
+
 #[tokio::main]
 async fn main() {
     configure_logging();
@@ -59,7 +68,7 @@ async fn main() {
         .nest("/api/v1", api::router().layer(trace_layer))
         .with_state(state);
 
-    let addr = SocketAddr::from(([0, 0, 0, 0], 3000));
+    let addr = SocketAddr::from(([0, 0, 0, 0], port()));
     let listener = TcpListener::bind(addr).await.expect("Failed to bind");
 
     info!("Starting server on {addr}");
