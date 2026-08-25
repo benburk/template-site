@@ -27,13 +27,19 @@ fn configure_logging() {
         .init();
 }
 
+/// Read the required server port from `PORT`.
 fn port() -> u16 {
-    match std::env::var("PORT") {
-        Ok(value) => value
-            .parse()
-            .expect("PORT is `{value}`, which is not a port number"),
-        Err(_) => 3000,
-    }
+    let Ok(value) = std::env::var("PORT") else {
+        eprintln!(
+            "no PORT. Podium writes one into each worktree's .env, \
+             which `just serve` loads."
+        );
+        std::process::exit(2);
+    };
+    value.parse().unwrap_or_else(|_| {
+        eprintln!("PORT is `{value}`, which is not a port number.");
+        std::process::exit(2);
+    })
 }
 
 #[tokio::main]
@@ -68,7 +74,7 @@ async fn main() {
         .nest("/api/v1", api::router().layer(trace_layer))
         .with_state(state);
 
-    let addr = SocketAddr::from(([0, 0, 0, 0], port()));
+    let addr = SocketAddr::from(([127, 0, 0, 1], port()));
     let listener = TcpListener::bind(addr).await.expect("Failed to bind");
 
     info!("Starting server on {addr}");
