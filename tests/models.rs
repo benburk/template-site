@@ -1,6 +1,10 @@
 //! Integration tests for database models.
 
-use app::models::{session::Session, user::User};
+use app::models::{
+    invite_code::{InviteCode, normalize},
+    session::Session,
+    user::User,
+};
 use app::password::generate_hash;
 use app::util::current_time_micros;
 use sqlx::{SqlitePool, sqlite::SqlitePoolOptions};
@@ -127,6 +131,89 @@ async fn user_clear_email() {
 
     let fetched = User::get_by_id(&db, user.id).await.expect("get failed");
     assert_eq!(fetched.email, None);
+}
+
+// ============================================================================
+// Invite code model tests
+// ============================================================================
+
+async fn create_test_invite(db: &SqlitePool, code: &str, issuer: &User) {
+    sqlx::query(
+        "INSERT INTO invite_code (code, issued_by, created_at) VALUES (?, ?, ?)",
+    )
+    .bind(code)
+    .bind(issuer.id)
+    .bind(current_time_micros())
+    .execute(db)
+    .await
+    .expect("invite insert failed");
+}
+
+#[tokio::test]
+async fn invite_reports_issuer_and_can_only_be_redeemed_once() {
+    let db = setup_test_db().await;
+    let issuer = create_test_user("admin", "password123");
+    let recipient = create_test_user("recipient", "password123");
+    User::insert(&db, &issuer)
+        .await
+        .expect("issuer insert failed");
+    User::insert(&db, &recipient)
+        .await
+        .expect("recipient insert failed");
+    create_test_invite(&db, "SXNHWA6953JC034X", &issuer).await;
+
+    let invite =
+        InviteCode::get_available(&db, &normalize("sxnh-wa69-53jc-o34x"))
+            .await
+            .expect("invite lookup failed")
+            .expect("invite not found");
+    assert_eq!(invite.issuer_username, "admin");
+
+    let redeemed = InviteCode::redeem(
+        &db,
+        &invite.code,
+        recipient.id,
+        current_time_micros(),
+    )
+    .await
+    .expect("invite redemption failed");
+    assert!(redeemed);
+    assert!(
+        InviteCode::get_available(&db, &invite.code)
+            .await
+            .expect("invite lookup failed")
+            .is_none()
+    );
+    assert!(
+        !InviteCode::redeem(
+            &db,
+            &invite.code,
+            recipient.id,
+            current_time_micros(),
+        )
+        .await
+        .expect("second redemption failed")
+    );
+}
+
+#[tokio::test]
+async fn invite_rejects_non_crockford_codes() {
+    let db = setup_test_db().await;
+    let issuer = create_test_user("admin", "password123");
+    User::insert(&db, &issuer)
+        .await
+        .expect("issuer insert failed");
+
+    let result = sqlx::query(
+        "INSERT INTO invite_code (code, issued_by, created_at) VALUES (?, ?, ?)",
+    )
+    .bind("INVALID-O0000000")
+    .bind(issuer.id)
+    .bind(current_time_micros())
+    .execute(&db)
+    .await;
+
+    assert!(matches!(result, Err(sqlx::Error::Database(_))));
 }
 
 // ============================================================================
@@ -262,7 +349,8 @@ async fn session_cascade_delete_on_user_delete() {
         .expect("session insert failed");
 
     // Delete the user directly
-    sqlx::query!("DELETE FROM user WHERE id = ?", user.id)
+    sqlx::query("DELETE FROM user WHERE id = ?")
+        .bind(user.id)
         .execute(&db)
         .await
         .expect("user delete failed");

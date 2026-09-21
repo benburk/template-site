@@ -69,6 +69,7 @@ pub fn router() -> Router<AppState> {
         .route("/sessions", post(session::post).delete(session::delete))
         .route("/sessions/{session_id}", delete(session::delete_by_id))
         .route("/users/new", get(signup::get))
+        .route("/invite-codes/check", post(signup::check_invite))
         .route("/users", post(signup::post))
         .route("/settings", get(settings::get).patch(settings::patch))
 }

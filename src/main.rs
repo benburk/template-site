@@ -30,10 +30,7 @@ fn configure_logging() {
 /// Read the required server port from `PORT`.
 fn port() -> u16 {
     let Ok(value) = std::env::var("PORT") else {
-        eprintln!(
-            "no PORT. Podium writes one into each worktree's .env, \
-             which `just serve` loads."
-        );
+        eprintln!("no PORT. `just serve` picks a free one with free-port.");
         std::process::exit(2);
     };
     value.parse().unwrap_or_else(|_| {

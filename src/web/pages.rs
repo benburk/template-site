@@ -50,8 +50,17 @@ pub fn login_page() -> Markup {
     base("", "Log in", "/sessions/new", &login_form("", ""))
 }
 
-pub fn signup_page() -> Markup {
-    base("", "Sign up", "/users/new", &signup_form("", "", ""))
+pub fn signup_page(
+    invite_code: &str,
+    invite_issuer: &str,
+    invite_message: &str,
+) -> Markup {
+    base(
+        "",
+        "Sign up",
+        "/users/new",
+        &signup_form(invite_code, invite_issuer, invite_message, "", "", ""),
+    )
 }
 
 pub fn settings(username: &str, email: Option<&str>) -> Markup {
