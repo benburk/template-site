@@ -35,12 +35,16 @@ test:
     cargo test --workspace
 
 # Build release binary
+[group('podium')]
 build:
     cargo build --release
 
-# Run the server until interrupted
-serve:
-    cargo run
+# A second line of comment would be all `just --list` shows, and this one is a
+# button's tooltip, so it is stated outright.
+[doc('Serve until interrupted, on a free port')]
+[group('podium')]
+serve port=`free-port`:
+    PORT={{ port }} cargo run
 
 # Restart the server when source files change
 watch:
