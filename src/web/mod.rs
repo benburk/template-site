@@ -1,12 +1,13 @@
 //! Web routes.
 use axum::{
     Router,
-    http::header,
+    http::{StatusCode, header},
     response::IntoResponse,
     routing::{delete, get, post},
 };
 
 use crate::app_state::AppState;
+use crate::models::user::User;
 
 mod about;
 pub mod components;
@@ -59,6 +60,12 @@ pub fn static_router() -> Router<AppState> {
         .route("/fixi-config.js", get(get_fixi_config))
 }
 
+/// Answers an address no route matches, with the header for whoever asked.
+async fn not_found(user: Option<User>) -> impl IntoResponse {
+    let username = user.map(|user| user.username).unwrap_or_default();
+    (StatusCode::NOT_FOUND, pages::not_found(&username))
+}
+
 /// Dynamic routes - with request logging
 pub fn router() -> Router<AppState> {
     Router::new()
@@ -72,4 +79,5 @@ pub fn router() -> Router<AppState> {
         .route("/invite-codes/check", post(signup::check_invite))
         .route("/users", post(signup::post))
         .route("/settings", get(settings::get).patch(settings::patch))
+        .fallback(not_found)
 }

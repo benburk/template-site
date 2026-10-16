@@ -1,22 +1,20 @@
 use axum::Form;
 use axum::extract::State;
-use axum::response::{IntoResponse, Redirect};
+use axum::response::{IntoResponse, Redirect, Response};
 use serde::Deserialize;
 use tracing::error;
 
 use crate::app_state::AppState;
+use crate::error::AppError;
+use crate::extractors::session::SignedIn;
 use crate::models::user::User;
 use crate::password;
 use crate::services::Job;
 
 use super::{components, pages};
 
-pub async fn get(user_opt: Option<User>) -> impl IntoResponse {
-    match user_opt {
-        Some(user) => pages::settings(&user.username, user.email.as_deref())
-            .into_response(),
-        None => Redirect::to("/sessions/new").into_response(),
-    }
+pub async fn get(SignedIn(user): SignedIn) -> impl IntoResponse {
+    pages::settings(&user.username, user.email.as_deref())
 }
 
 #[derive(Deserialize)]
@@ -27,15 +25,12 @@ pub struct UpdateSettingsPayload {
     email: Option<String>,
 }
 
+/// Saves whichever settings form was sent, answering with that form again.
 pub async fn patch(
     State(state): State<AppState>,
-    user_opt: Option<User>,
+    SignedIn(user): SignedIn,
     Form(form): Form<UpdateSettingsPayload>,
-) -> impl IntoResponse {
-    let Some(user) = user_opt else {
-        return Redirect::to("/sessions/new").into_response();
-    };
-
+) -> Result<Response, AppError> {
     if let Some(new_username) = form.new_username {
         return handle_username_update(&state, &user, &new_username).await;
     }
@@ -54,18 +49,22 @@ pub async fn patch(
         return handle_email_update(&state, &user, &email).await;
     }
 
-    Redirect::to("/settings").into_response()
+    Ok(Redirect::to("/settings").into_response())
 }
 
 async fn handle_username_update(
     state: &AppState,
     user: &User,
     new_username: &str,
-) -> axum::response::Response {
+) -> Result<Response, AppError> {
     let username_error = password::validate_username(new_username);
     if !username_error.is_empty() {
-        return components::username_form(new_username, &username_error, false)
-            .into_response();
+        return Ok(components::username_form(
+            new_username,
+            &username_error,
+            false,
+        )
+        .into_response());
     }
 
     let query_result = sqlx::query!(
@@ -76,31 +75,15 @@ async fn handle_username_update(
     .execute(&state.db)
     .await;
 
-    match query_result {
-        Ok(_) => components::username_form(
-            new_username,
-            "Username updated successfully!",
-            true,
-        )
-        .into_response(),
+    let (message, is_success) = match query_result {
+        Ok(_) => ("Username updated successfully!", true),
         Err(sqlx::Error::Database(err)) if err.is_unique_violation() => {
-            components::username_form(
-                new_username,
-                "Username already taken",
-                false,
-            )
-            .into_response()
+            ("Username already taken", false)
         }
-        Err(err) => {
-            error!("Failed to update username: {}", err);
-            components::username_form(
-                new_username,
-                "Failed to update username",
-                false,
-            )
-            .into_response()
-        }
-    }
+        Err(err) => return Err(err.into()),
+    };
+    Ok(components::username_form(new_username, message, is_success)
+        .into_response())
 }
 
 async fn handle_password_update(
@@ -108,87 +91,70 @@ async fn handle_password_update(
     user: &User,
     current_password: &str,
     new_password: &str,
-) -> axum::response::Response {
+) -> Result<Response, AppError> {
     let password_error = password::validate_password(new_password);
     if !password_error.is_empty() {
-        return components::password_form("", &password_error, false, false)
-            .into_response();
+        return Ok(components::password_form(
+            "",
+            &password_error,
+            false,
+            false,
+        )
+        .into_response());
     }
 
     let valid_login =
-        User::check_login(&state.db, &user.username, current_password).await;
+        User::check_login(&state.db, &user.username, current_password).await?;
     if valid_login.is_none() {
-        return components::password_form(
+        return Ok(components::password_form(
             "Current password is incorrect",
             "",
             false,
             false,
         )
-        .into_response();
+        .into_response());
     }
 
     let new_password_hash = password::generate_hash(new_password);
-
-    let query_result = sqlx::query!(
+    sqlx::query!(
         "UPDATE user SET password_hash = ? WHERE id = ?",
         new_password_hash,
         user.id
     )
     .execute(&state.db)
-    .await;
+    .await?;
 
-    match query_result {
-        Ok(_) => components::password_form(
-            "",
-            "Password updated successfully!",
-            false,
-            true,
-        )
-        .into_response(),
-        Err(err) => {
-            error!("Failed to update password: {}", err);
-            components::password_form(
-                "",
-                "Failed to update password",
-                false,
-                false,
-            )
-            .into_response()
-        }
-    }
+    Ok(components::password_form(
+        "",
+        "Password updated successfully!",
+        false,
+        true,
+    )
+    .into_response())
 }
 
 async fn handle_email_update(
     state: &AppState,
     user: &User,
     email: &str,
-) -> axum::response::Response {
+) -> Result<Response, AppError> {
     let email = email.trim();
     let email_opt = if email.is_empty() { None } else { Some(email) };
 
-    match User::update_email(&state.db, user.id, email_opt).await {
-        Ok(()) => {
-            // Send verification email if email was provided
-            if let Some(addr) = email_opt
-                && state
-                    .job_tx
-                    .send(Job::SendEmail {
-                        to: addr.to_owned(),
-                        subject: "Verify your email".to_owned(),
-                        body: "Click here to verify your email address."
-                            .to_owned(),
-                    })
-                    .is_err()
-            {
-                error!("Failed to queue verification email");
-            }
-            components::email_form(email, "Email updated!", true)
-                .into_response()
-        }
-        Err(err) => {
-            error!("Failed to update email: {}", err);
-            components::email_form(email, "Failed to update email", false)
-                .into_response()
-        }
+    User::update_email(&state.db, user.id, email_opt).await?;
+
+    // Send verification email if email was provided
+    if let Some(addr) = email_opt
+        && state
+            .job_tx
+            .send(Job::SendEmail {
+                to: addr.to_owned(),
+                subject: "Verify your email".to_owned(),
+                body: "Click here to verify your email address.".to_owned(),
+            })
+            .is_err()
+    {
+        error!("Failed to queue verification email");
     }
+    Ok(components::email_form(email, "Email updated!", true).into_response())
 }

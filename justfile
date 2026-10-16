@@ -26,7 +26,7 @@ check:
     dprint check
     @fd -e md --hidden -E .git -X awk '/^[[:space:]]*[|]/ && length($0) > 80 {print FILENAME ":" FNR ": table row is " length($0) " chars (>80)"; bad=1} END {exit bad}'
     cargo fmt --all -- --check
-    cargo clippy --workspace -- -D warnings
+    cargo clippy --workspace --all-targets -- -D warnings
     fd -e nix -X nixfmt --check
     ! rg -l '[^\n]\z' --multiline .
 
@@ -55,9 +55,15 @@ watch:
 prepare:
     cargo sqlx prepare
 
-# Reset database with migrations and seeds
+# The app creates and migrates the database itself when it starts; this
+# starts it over with the seeds loaded. The WAL files go too, since a stale
+# one would be replayed into the new database.
+[doc('Reset the database to the migrations and seeds')]
 db-init:
-    sqlx database drop -y
+    #!/usr/bin/env bash
+    set -euo pipefail
+    db=${DATABASE_URL#sqlite:}
+    rm -f "$db" "$db-wal" "$db-shm"
     sqlx database create
     sqlx migrate run
-    sqlite3 $DATABASE_PATH < seeds/seed.sql
+    sqlite3 "$db" < seeds/seed.sql

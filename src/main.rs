@@ -58,7 +58,6 @@ async fn main() {
                 %request_id,
                 method = %request.method(),
                 uri = %request.uri(),
-                session_id = field::Empty,
                 user_id = field::Empty,
             )
         })

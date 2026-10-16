@@ -140,3 +140,29 @@ pub fn profile(username: &str, sessions: &[SessionDisplay]) -> Markup {
         },
     )
 }
+
+/// The page for an address that leads nowhere.
+pub fn not_found(username: &str) -> Markup {
+    base(
+        username,
+        "Page not found",
+        "",
+        &html! {
+            h1 { "Page not found" }
+            p { "Nothing lives at this address. " a href="/" { "Go to the home page" } "." }
+        },
+    )
+}
+
+/// The page for something the signed-in account may not do.
+pub fn forbidden(username: &str) -> Markup {
+    base(
+        username,
+        "Not allowed",
+        "",
+        &html! {
+            h1 { "Not allowed" }
+            p { "This account cannot do that. " a href="/" { "Go to the home page" } "." }
+        },
+    )
+}

@@ -10,7 +10,7 @@ use app::util::current_time_micros;
 use sqlx::{SqlitePool, sqlite::SqlitePoolOptions};
 use uuid::Uuid;
 
-/// Creates an in-memory SQLite database with migrations applied.
+/// Creates an in-memory `SQLite` database with migrations applied.
 async fn setup_test_db() -> SqlitePool {
     let pool = SqlitePoolOptions::new()
         .connect("sqlite::memory:")
@@ -79,7 +79,9 @@ async fn user_check_login_success() {
 
     User::insert(&db, &user).await.expect("insert failed");
 
-    let result = User::check_login(&db, "loginuser", "correctpassword").await;
+    let result = User::check_login(&db, "loginuser", "correctpassword")
+        .await
+        .expect("login check failed");
     assert!(result.is_some());
     assert_eq!(result.unwrap().username, "loginuser");
 }
@@ -91,7 +93,9 @@ async fn user_check_login_wrong_password() {
 
     User::insert(&db, &user).await.expect("insert failed");
 
-    let result = User::check_login(&db, "loginuser2", "wrongpassword").await;
+    let result = User::check_login(&db, "loginuser2", "wrongpassword")
+        .await
+        .expect("login check failed");
     assert!(result.is_none());
 }
 
@@ -99,7 +103,9 @@ async fn user_check_login_wrong_password() {
 async fn user_check_login_nonexistent_user() {
     let db = setup_test_db().await;
 
-    let result = User::check_login(&db, "ghost", "anypassword").await;
+    let result = User::check_login(&db, "ghost", "anypassword")
+        .await
+        .expect("login check failed");
     assert!(result.is_none());
 }
 

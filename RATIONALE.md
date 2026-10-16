@@ -52,7 +52,7 @@ Tokio mpsc channels keep jobs in-process. No serialization, no network, no addit
 
 Containers add layers: base images, Dockerfiles, registries, orchestration. Each layer has configuration, versioning, and failure modes. Local development often differs from production container behavior.
 
-A single Rust binary contains everything: HTTP server, business logic, SQLite, and templates. Deployment is copying one file. Rollback is copying the old file back. Local development runs the exact same architecture as production.
+A single Rust binary contains everything: HTTP server, business logic, SQLite, templates, and migrations. Deployment is copying one file; the new binary brings the database up to its schema when it starts. Rollback is copying the old file back. Local development runs the exact same architecture as production.
 
 ## References
 

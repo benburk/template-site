@@ -9,6 +9,7 @@ edition = "2024"
 name = "app"
 
 [dependencies]
+anyhow = "1.0.104"
 argon2 = { version = "0.5.3", features = ["std"] }
 axum = "0.8.4"
 axum-extra = { version = "0.10", features = ["cookie", "typed-header"] }
@@ -32,6 +33,3 @@ missing_errors_doc = "allow"
 missing_panics_doc = "allow"
 module_name_repetitions = "allow"
 must_use_candidate = "allow"
-
-[dev-dependencies]
-tokio-test = "0.4"

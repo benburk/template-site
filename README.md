@@ -23,8 +23,12 @@ Then:
 ```sh
 cp .env.example .env
 nix develop --command just check      # no database needed
-nix develop --command just db-init    # only to run the app
+nix develop --command just db-init    # a database with the seed admin and invites
 ```
+
+The server creates the database named by `DATABASE_URL` if it is missing and
+applies pending migrations from `migrations/` when it starts. `db-init` starts
+it over with `seeds/seed.sql` loaded, which holds the invite codes signup needs.
 
 ## Queries and the database
 
@@ -48,15 +52,19 @@ query` rather than silently disagreeing with what is committed.
 src/
 ├── main.rs              # Entry point, spawns background services
 ├── app_state.rs         # Shared state (db pool, job channel)
+├── db.rs                # Opening the database and applying migrations
+├── error.rs             # AppError, the one error type handlers return
 ├── models/              # Database models (Active Record pattern)
 ├── services/            # Background job processors
 ├── web/
 │   ├── components/      # MAUD components (HTML fragments for fixi)
 │   ├── pages.rs         # Full page templates
 │   └── [feature].rs     # Route handlers
-└── extractors/          # Custom Axum extractors (auth)
+└── extractors/          # Custom Axum extractors (User, SignedIn)
 static/                  # CSS/JS embedded at compile time
-migrations/              # SQLx migrations
+migrations/              # SQLx migrations, embedded and applied at startup
+seeds/                   # Development data loaded by `just db-init`
+build.rs                 # Rebuilds the crate when a migration changes
 ```
 
 ## Development

@@ -78,24 +78,24 @@ impl User {
         Ok(())
     }
 
-    /// Checks a usernames+password combination using the database and returns the user if it is valid.
-    /// Returns `None` if the user does not exist or the password is incorrect.
+    /// Checks a username and password against the database and returns the
+    /// user if they match. Returns `None` if the user does not exist or the
+    /// password is incorrect.
     pub async fn check_login<'e, E: SqliteExecutor<'e>>(
         db: E,
         username: &str,
         password: &str,
-    ) -> Option<Self> {
-        match Self::get_by_username(db, username).await {
-            Ok(user) => {
-                let parsed_hash = PasswordHash::new(&user.password_hash)
-                    .expect("Failed to parse hash");
-                Argon2::default()
-                    .verify_password(password.as_bytes(), &parsed_hash)
-                    .ok()
-                    .map(|()| user)
-            }
-            Err(sqlx::Error::RowNotFound) => None,
-            Err(_err) => None,
-        }
+    ) -> Result<Option<Self>, sqlx::Error> {
+        let user = match Self::get_by_username(db, username).await {
+            Ok(user) => user,
+            Err(sqlx::Error::RowNotFound) => return Ok(None),
+            Err(err) => return Err(err),
+        };
+        let parsed_hash = PasswordHash::new(&user.password_hash)
+            .expect("Failed to parse hash");
+        Ok(Argon2::default()
+            .verify_password(password.as_bytes(), &parsed_hash)
+            .ok()
+            .map(|()| user))
     }
 }

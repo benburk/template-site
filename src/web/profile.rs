@@ -6,26 +6,28 @@ use axum::{
 };
 
 use crate::app_state::AppState;
-use crate::models::{session::Session, user::User};
+use crate::error::AppError;
+use crate::extractors::session::SignedIn;
+use crate::models::session::Session;
 
 use super::{components::SessionDisplay, pages};
 
+/// The signed-in account's own page. Anyone asking for another account's
+/// page is sent to their own, since profiles are private.
 pub async fn profile(
     Path(username): Path<String>,
     State(state): State<AppState>,
-    user_opt: Option<User>,
-) -> impl IntoResponse {
-    let Some(user) = user_opt else {
-        return Redirect::to("/sessions/new").into_response();
-    };
-
+    SignedIn(user): SignedIn,
+) -> Result<impl IntoResponse, AppError> {
     if user.username != username {
-        return Redirect::to(&format!("/users/{}", user.username))
-            .into_response();
+        return Ok(
+            Redirect::to(&format!("/users/{}", user.username)).into_response()
+        );
     }
 
-    let sessions = match Session::get_by_user_id(&state.db, user.id).await {
-        Ok(sessions) => sessions
+    let sessions: Vec<SessionDisplay> =
+        Session::get_by_user_id(&state.db, user.id)
+            .await?
             .into_iter()
             .map(|session| SessionDisplay {
                 id: session.id.to_string(),
@@ -35,11 +37,9 @@ pub async fn profile(
                 expires_at: format_timestamp(session.expires_at),
                 is_current: false,
             })
-            .collect(),
-        Err(_) => Vec::new(),
-    };
+            .collect();
 
-    pages::profile(&user.username, &sessions).into_response()
+    Ok(pages::profile(&user.username, &sessions).into_response())
 }
 
 fn truncate_user_agent(user_agent: &str) -> String {

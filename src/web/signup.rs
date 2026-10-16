@@ -3,7 +3,7 @@ use std::net::SocketAddr;
 use axum::extract::{ConnectInfo, State};
 use axum::{
     Form,
-    response::{IntoResponse, Redirect},
+    response::{IntoResponse, Redirect, Response},
 };
 use axum_extra::TypedHeader;
 use axum_extra::extract::CookieJar;
@@ -12,7 +12,7 @@ use serde::Deserialize;
 use uuid::Uuid;
 
 use crate::app_state::AppState;
-use crate::error::internal_error;
+use crate::error::AppError;
 use crate::models::invite_code::{InviteCode, normalize};
 use crate::models::user::User;
 use crate::password;
@@ -35,27 +35,27 @@ pub struct InvitePayload {
     invite_code: String,
 }
 
+/// Looks up the invite code a visitor entered, showing who issued it or
+/// why it cannot be used.
 pub async fn check_invite(
     user: Option<User>,
     State(state): State<AppState>,
     Form(form): Form<InvitePayload>,
-) -> impl IntoResponse {
+) -> Result<Response, AppError> {
     if user.is_some() {
-        return Redirect::to("/").into_response();
+        return Ok(Redirect::to("/").into_response());
     }
 
     let invite_code = normalize(&form.invite_code);
-    match InviteCode::get_available(&state.db, &invite_code).await {
-        Ok(Some(invite)) => {
+    let page = match InviteCode::get_available(&state.db, &invite_code).await? {
+        Some(invite) => {
             pages::signup_page(&form.invite_code, &invite.issuer_username, "")
-                .into_response()
         }
-        Ok(None) => {
+        None => {
             pages::signup_page(&form.invite_code, "", INVALID_INVITE_MESSAGE)
-                .into_response()
         }
-        Err(err) => internal_error(err).into_response(),
-    }
+    };
+    Ok(page.into_response())
 }
 
 #[derive(Deserialize, Debug)]
@@ -65,20 +65,16 @@ pub struct FormPayload {
     password: String,
 }
 
+/// Creates an account from a valid invite and signs it in.
 pub async fn post(
     jar: CookieJar,
     TypedHeader(user_agent): TypedHeader<UserAgent>,
     ConnectInfo(addr): ConnectInfo<SocketAddr>,
     State(state): State<AppState>,
     Form(form): Form<FormPayload>,
-) -> impl IntoResponse {
+) -> Result<Response, AppError> {
     let invite_code = normalize(&form.invite_code);
-    let invite = match InviteCode::get_available(&state.db, &invite_code).await
-    {
-        Ok(Some(invite)) => Some(invite),
-        Ok(None) => None,
-        Err(err) => return internal_error(err).into_response(),
-    };
+    let invite = InviteCode::get_available(&state.db, &invite_code).await?;
     let username_message = password::validate_username(&form.username);
     let password_message = password::validate_password(&form.password);
 
@@ -91,7 +87,7 @@ pub async fn post(
         } else {
             ""
         };
-        return components::signup_form(
+        return Ok(components::signup_form(
             &form.invite_code,
             invite.as_ref().map_or("", |invite| &invite.issuer_username),
             invite_message,
@@ -99,7 +95,7 @@ pub async fn post(
             &username_message,
             &password_message,
         )
-        .into_response();
+        .into_response());
     }
 
     let created_at = current_time_micros();
@@ -111,14 +107,11 @@ pub async fn post(
         created_at,
     };
 
-    let mut transaction = match state.db.begin().await {
-        Ok(transaction) => transaction,
-        Err(err) => return internal_error(err).into_response(),
-    };
+    let mut transaction = state.db.begin().await?;
     match User::insert(&mut *transaction, &user).await {
         Ok(()) => {}
         Err(sqlx::Error::Database(err)) if err.is_unique_violation() => {
-            return components::signup_form(
+            return Ok(components::signup_form(
                 &form.invite_code,
                 &invite.expect("invite was checked").issuer_username,
                 "",
@@ -126,47 +119,39 @@ pub async fn post(
                 "Username already taken",
                 "",
             )
-            .into_response();
+            .into_response());
         }
-        Err(err) => return internal_error(err).into_response(),
+        Err(err) => return Err(err.into()),
     }
 
-    match InviteCode::redeem(
+    // Another signup may have taken the invite since it was checked above.
+    let redeemed = InviteCode::redeem(
         &mut *transaction,
         &invite_code,
         user.id,
         created_at,
     )
-    .await
-    {
-        Ok(true) => {}
-        Ok(false) => {
-            return components::signup_form(
-                &form.invite_code,
-                "",
-                INVALID_INVITE_MESSAGE,
-                &form.username,
-                "",
-                "",
-            )
-            .into_response();
-        }
-        Err(err) => return internal_error(err).into_response(),
+    .await?;
+    if !redeemed {
+        return Ok(components::signup_form(
+            &form.invite_code,
+            "",
+            INVALID_INVITE_MESSAGE,
+            &form.username,
+            "",
+            "",
+        )
+        .into_response());
     }
-    if let Err(err) = transaction.commit().await {
-        return internal_error(err).into_response();
-    }
+    transaction.commit().await?;
 
-    match super::session::create_session(
+    let cookie = super::session::create_session(
         &state.db,
         user.id,
         created_at,
         addr.to_string(),
         user_agent,
     )
-    .await
-    {
-        Ok(cookie) => (jar.add(cookie), Redirect::to("/")).into_response(),
-        Err(err) => internal_error(err).into_response(),
-    }
+    .await?;
+    Ok((jar.add(cookie), Redirect::to("/")).into_response())
 }
